@@ -1545,6 +1545,102 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    /* ── PRIORITY ─────────────────────────────────────────────────── */
+    .prio-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .prio-dot.high   { background: var(--danger); }
+    .prio-dot.medium { background: var(--warning); }
+
+    .task-item.prio-high   { border-left: 3px solid var(--danger); }
+    .task-item.prio-medium { border-left: 3px solid var(--warning); }
+
+    /* ── TASK OPTIONS ROW ─────────────────────────────────────────── */
+    .task-options-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .prio-chips { display: flex; gap: 4px; flex: 1; }
+
+    .prio-chip {
+      flex: 1;
+      padding: 5px 6px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .prio-chip.active.prio-normal { border-color: var(--border-focus); color: var(--text); background: var(--item-bg); }
+    .prio-chip.active.prio-medium { border-color: var(--warning); color: var(--warning); background: rgba(255,159,10,0.1); }
+    .prio-chip.active.prio-high   { border-color: var(--danger);  color: var(--danger);  background: rgba(255,69,58,0.1); }
+
+    input[type="date"] {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.78rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+    input[type="date"]:focus { border-color: var(--border-focus); }
+
+    /* ── DUE DATE BADGE ───────────────────────────────────────────── */
+    .due-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 50px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .due-badge.overdue  { background: rgba(255,69,58,0.15);  color: var(--danger); }
+    .due-badge.today    { background: rgba(255,159,10,0.15); color: var(--warning); }
+    .due-badge.upcoming { background: var(--item-bg);        color: var(--text-secondary); }
+
+    /* ── STATS PANEL ──────────────────────────────────────────────── */
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 500px) { .stats-panel { grid-template-columns: 1fr 1fr; } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color 0.3s;
+    }
+    .stat-card:hover { border-color: rgba(255,255,255,0.15); }
+    [data-theme="light"] .stat-card:hover { border-color: rgba(0,0,0,0.13); }
+
+    .stat-value { font-size: 2rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+    .stat-label { font-size: 0.78rem; color: var(--text-secondary); font-weight: 400; margin-top: 2px; }
+    .stat-sub   { font-size: 0.7rem;  color: var(--text-secondary); opacity: 0.55; }
   </style>
 </head>
 <body>
@@ -1570,6 +1666,24 @@
       <p>Simple, rapide, et toujours là où vous en avez besoin.</p>
     </div>
 
+    <!-- STATISTIQUES -->
+    <div class="stats-panel">
+      <div class="stat-card">
+        <span class="stat-value" id="statDoneWeek">—</span>
+        <span class="stat-label">Tâches faites cette semaine</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="statRate">—</span>
+        <span class="stat-label">Taux de complétion</span>
+        <span class="stat-sub" id="statRateSub"></span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="statStreak">—</span>
+        <span class="stat-label">Jours consécutifs 🔥</span>
+        <span class="stat-sub" id="statStreakSub"></span>
+      </div>
+    </div>
+
     <div class="grid">
       <!-- TÂCHES -->
       <div class="panel">
@@ -1580,6 +1694,14 @@
         <div class="input-group">
           <input type="text" id="taskInput" placeholder="Nouvelle tâche…" />
           <button class="btn-add" onclick="addTask()">+</button>
+        </div>
+        <div class="task-options-row">
+          <div class="prio-chips">
+            <button class="prio-chip prio-normal active" onclick="selectPriority('normal')">⚪ Normal</button>
+            <button class="prio-chip prio-medium" onclick="selectPriority('medium')">🟡 Moyen</button>
+            <button class="prio-chip prio-high" onclick="selectPriority('high')">🔴 Haute</button>
+          </div>
+          <input type="date" id="taskDueDate" title="Date d'échéance" />
         </div>
         <ul class="item-list" id="taskList">
           <li class="empty">Aucune tâche pour l'instant.</li>
@@ -1802,6 +1924,7 @@
     let sheetSelectedCat = '';
     let activeProjectId  = null;
     let selectedProjectColor = '#0A84FF';
+    let newTaskPriority = 'normal';
 
     const PROJECT_COLORS = ['#0A84FF','#BF5AF2','#FF453A','#30D158','#FF9F0A','#64D2FF','#5E5CE6','#FF6961','#AC8E68','#32ADE6'];
     const STATUS_CONFIG = {
@@ -1831,45 +1954,126 @@
     }
 
     // ---- TÂCHES ----
+    function selectPriority(p) {
+      newTaskPriority = p;
+      document.querySelectorAll('.prio-chip').forEach(el => {
+        el.classList.toggle('active', el.classList.contains('prio-' + p));
+      });
+    }
+
     function renderTasks() {
       const list = document.getElementById('taskList');
       list.innerHTML = '';
       if (tasks.length === 0) {
         list.innerHTML = '<li class="empty">Aucune tâche pour l\'instant.</li>';
+        renderStats();
         return;
       }
-      tasks.forEach((task, i) => {
-        const li = document.createElement('li');
-        li.className = 'task-item' + (task.done ? ' done' : '');
+      // Sort: non-done first, then by priority (high > medium > normal)
+      const prioOrder = { high: 0, medium: 1, normal: 2 };
+      const sorted = tasks.map((t, i) => ({ ...t, _i: i }))
+        .sort((a, b) => {
+          if (a.done !== b.done) return a.done ? 1 : -1;
+          return (prioOrder[a.priority || 'normal']) - (prioOrder[b.priority || 'normal']);
+        });
+
+      sorted.forEach(task => {
+        const i    = task._i;
+        const prio = task.priority || 'normal';
+        const li   = document.createElement('li');
+        li.className = 'task-item'
+          + (task.done ? ' done' : '')
+          + (prio !== 'normal' ? ' prio-' + prio : '');
+
+        // Priority dot
+        const prioDotHtml = prio !== 'normal'
+          ? `<span class="prio-dot ${prio}"></span>` : '';
+
+        // Due date badge
+        let dueBadgeHtml = '';
+        if (task.dueDate && !task.done) {
+          const due    = new Date(task.dueDate + 'T00:00:00');
+          const today  = new Date(); today.setHours(0,0,0,0);
+          const diff   = Math.round((due - today) / 86400000);
+          if      (diff < 0) dueBadgeHtml = `<span class="due-badge overdue">En retard</span>`;
+          else if (diff === 0) dueBadgeHtml = `<span class="due-badge today">Aujourd'hui</span>`;
+          else if (diff === 1) dueBadgeHtml = `<span class="due-badge upcoming">Demain</span>`;
+          else dueBadgeHtml = `<span class="due-badge upcoming">${due.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</span>`;
+        }
+
         li.innerHTML = `
           <label class="checkbox-wrap">
             <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${i})" />
             <div class="checkbox-custom"></div>
           </label>
+          ${prioDotHtml}
           <span class="task-text">${escapeHtml(task.text)}</span>
+          ${dueBadgeHtml}
           <button class="btn-delete" onclick="deleteTask(${i})">✕</button>
         `;
         list.appendChild(li);
       });
+      renderStats();
     }
 
     function addTask() {
-      const input = document.getElementById('taskInput');
-      const text = input.value.trim();
+      const input   = document.getElementById('taskInput');
+      const text    = input.value.trim();
       if (!text) return;
-      tasks.push({ text, done: false });
+      const dueDate = document.getElementById('taskDueDate').value || null;
+      tasks.push({ text, done: false, priority: newTaskPriority, dueDate, completedAt: null });
       saveAll(); renderTasks();
       input.value = '';
+      document.getElementById('taskDueDate').value = '';
+      selectPriority('normal');
     }
 
     function toggleTask(i) {
       tasks[i].done = !tasks[i].done;
+      tasks[i].completedAt = tasks[i].done ? Date.now() : null;
       saveAll(); renderTasks();
     }
 
     function deleteTask(i) {
       tasks.splice(i, 1);
       saveAll(); renderTasks();
+    }
+
+    // ---- STATS ----
+    function calcStreak() {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const completedDays = new Set(
+        tasks
+          .filter(t => t.completedAt)
+          .map(t => { const d = new Date(t.completedAt); d.setHours(0,0,0,0); return d.getTime(); })
+      );
+      let streak = 0;
+      const check = new Date(today);
+      while (completedDays.has(check.getTime())) {
+        streak++;
+        check.setDate(check.getDate() - 1);
+      }
+      return streak;
+    }
+
+    function renderStats() {
+      const el = id => document.getElementById(id);
+      if (!el('statDoneWeek')) return;
+      const now     = Date.now();
+      const weekAgo = now - 7 * 86400000;
+      const doneWeek = tasks.filter(t => t.completedAt && t.completedAt >= weekAgo).length;
+      const total    = tasks.length;
+      const done     = tasks.filter(t => t.done).length;
+      const rate     = total > 0 ? Math.round(done / total * 100) : 0;
+      const streak   = calcStreak();
+
+      el('statDoneWeek').textContent = doneWeek;
+      el('statRate').textContent     = total > 0 ? rate + '%' : '—';
+      el('statRateSub').textContent  = total > 0 ? `${done} sur ${total} tâche${total > 1 ? 's' : ''}` : 'Aucune tâche';
+      el('statStreak').textContent   = streak;
+      el('statStreakSub').textContent = streak === 0 ? 'Commencez aujourd\'hui !'
+        : streak === 1 ? 'C\'est un début !'
+        : 'Bravo, continuez !';
     }
 
     document.getElementById('taskInput').addEventListener('keydown', e => {
