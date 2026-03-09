@@ -1711,6 +1711,127 @@
 
     .domain-detail-emoji { font-size: 3rem; margin-bottom: 8px; line-height: 1; }
 
+    /* ---- DOMAIN DETAIL ACTIONS ---- */
+    .detail-actions { display: flex; align-items: center; gap: 8px; }
+
+    .detail-edit-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 5px 12px;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .detail-edit-btn:hover { background: var(--surface-hover); }
+
+    /* ---- DOMAIN PROJECTS ---- */
+    .domain-proj-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .domain-proj-item {
+      background: var(--item-bg);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .domain-proj-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .domain-proj-toggle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .domain-proj-item.expanded .domain-proj-toggle { transform: rotate(90deg); }
+    .domain-proj-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
+
+    .domain-proj-del {
+      background: none;
+      border: none;
+      color: var(--delete-color);
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .domain-proj-header:hover .domain-proj-del { opacity: 1; }
+    .domain-proj-del:hover { color: var(--danger) !important; }
+
+    .domain-proj-notes {
+      display: none;
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .domain-proj-item.expanded .domain-proj-notes { display: block; }
+
+    .domain-note-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .domain-note-item:last-of-type { border-bottom: none; }
+    .domain-note-dot {
+      flex-shrink: 0;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      margin-top: 6px;
+    }
+    .domain-note-text { flex: 1; line-height: 1.55; color: var(--text); }
+    .domain-note-del {
+      background: none;
+      border: none;
+      color: var(--delete-color);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 2px 4px;
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: all 0.15s;
+    }
+    .domain-note-del:hover { opacity: 1; color: var(--danger); }
+
+    .domain-note-add-row { display: flex; gap: 8px; margin-top: 10px; }
+    .domain-note-add-row input {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 7px 10px;
+    }
+    .domain-note-add-row input:focus { outline: none; border-color: var(--border-focus); background: var(--input-bg-focus); }
+    .domain-note-add-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 7px 12px;
+      transition: background 0.15s;
+    }
+    .domain-note-add-btn:hover { background: var(--accent-hover); }
+
     .domains-empty {
       grid-column: 1 / -1;
       text-align: center;
@@ -1927,6 +2048,7 @@
           <span>‹</span> Domaines
         </button>
         <div class="detail-actions">
+          <button class="detail-edit-btn" onclick="openEditDomainModal()">Modifier</button>
           <button class="detail-del-btn" onclick="deleteActiveDomain()">Supprimer</button>
         </div>
       </div>
@@ -1941,6 +2063,13 @@
         <button class="btn-add" onclick="addDomainGoal()">+</button>
       </div>
       <ul class="item-list no-max" id="domainGoalList"></ul>
+
+      <div class="detail-section-label" style="margin-top:32px">Projets</div>
+      <div class="input-group" style="margin-bottom:16px">
+        <input type="text" id="domainProjectInput" placeholder="Nouveau projet…" />
+        <button class="btn-add" onclick="addDomainProject()">+</button>
+      </div>
+      <div class="domain-proj-list" id="domainProjectList"></div>
     </div>
   </div>
 
@@ -3157,6 +3286,7 @@
     // ---- DOMAINES ----
     const DOMAIN_EMOJIS = ['🗂️','💼','🏋️','🧠','❤️','💡','🎯','📚','🎨','🏠','💰','🌱','✈️','🎮','🤝','🎓'];
     let activeDomainId    = null;
+    let editingDomainId   = null;
     let selectedDomainColor = '#0A84FF';
     let selectedDomainEmoji = '🗂️';
 
@@ -3204,6 +3334,7 @@
       document.getElementById('domainDetailName').textContent  = d.name;
       document.getElementById('domainDetailDesc').textContent  = d.description || '';
       renderDomainGoals();
+      renderDomainProjects();
     }
 
     function closeDomain() {
@@ -3268,15 +3399,104 @@
       saveAll(); renderDomainGoals(); renderDomains();
     }
 
-    function openDomainModal() {
-      selectedDomainColor = '#0A84FF';
-      selectedDomainEmoji = '🗂️';
-      // Emoji picker
+    // ---- DOMAIN PROJECTS ----
+
+    function renderDomainProjects() {
+      const d    = domains.find(x => x.id === activeDomainId);
+      const list = document.getElementById('domainProjectList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (!d || !d.projects || d.projects.length === 0) {
+        list.innerHTML = '<div style="font-size:0.85rem;color:var(--text-secondary);padding:4px 0 8px">Aucun projet pour l\'instant.</div>';
+        return;
+      }
+      d.projects.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'domain-proj-item';
+        item.dataset.pid = p.id;
+        let notesHtml = (p.notes || []).map(n => `
+          <div class="domain-note-item" data-nid="${n.id}">
+            <span class="domain-note-dot"></span>
+            <span class="domain-note-text">${escapeHtml(n.text)}</span>
+            <button class="domain-note-del" onclick="deleteDomainNote('${p.id}','${n.id}')">✕</button>
+          </div>`).join('');
+        item.innerHTML = `
+          <div class="domain-proj-header" onclick="toggleDomainProject(this.parentElement)">
+            <span class="domain-proj-toggle">›</span>
+            <span class="domain-proj-name">${escapeHtml(p.name)}</span>
+            <span style="font-size:0.75rem;color:var(--text-secondary);margin-right:4px">${p.notes ? p.notes.length : 0} note${(p.notes||[]).length !== 1 ? 's' : ''}</span>
+            <button class="domain-proj-del" onclick="event.stopPropagation();deleteDomainProject('${p.id}')">✕</button>
+          </div>
+          <div class="domain-proj-notes">
+            ${notesHtml}
+            <div class="domain-note-add-row">
+              <input type="text" placeholder="Ajouter une note…" id="noteInput-${p.id}"
+                onkeydown="if(event.key==='Enter')addDomainNote('${p.id}',this)" />
+              <button class="domain-note-add-btn" onclick="addDomainNote('${p.id}',document.getElementById('noteInput-${p.id}'))">+</button>
+            </div>
+          </div>`;
+        list.appendChild(item);
+      });
+    }
+
+    function addDomainProject() {
+      const input = document.getElementById('domainProjectInput');
+      const name  = input.value.trim();
+      if (!name || !activeDomainId) return;
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      if (!d.projects) d.projects = [];
+      d.projects.push({ id: Date.now().toString(), name, notes: [] });
+      saveAll(); renderDomainProjects(); renderDomains();
+      input.value = '';
+    }
+
+    function deleteDomainProject(pid) {
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      d.projects = (d.projects || []).filter(p => p.id !== pid);
+      saveAll(); renderDomainProjects(); renderDomains();
+    }
+
+    function toggleDomainProject(item) {
+      item.classList.toggle('expanded');
+    }
+
+    function addDomainNote(pid, inputEl) {
+      const text = inputEl.value.trim();
+      if (!text || !activeDomainId) return;
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      const p = (d.projects || []).find(x => x.id === pid);
+      if (!p) return;
+      if (!p.notes) p.notes = [];
+      p.notes.push({ id: Date.now().toString(), text });
+      saveAll();
+      renderDomainProjects();
+      const item = document.querySelector(`.domain-proj-item[data-pid="${pid}"]`);
+      if (item) item.classList.add('expanded');
+    }
+
+    function deleteDomainNote(pid, nid) {
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      const p = (d.projects || []).find(x => x.id === pid);
+      if (!p) return;
+      p.notes = (p.notes || []).filter(n => n.id !== nid);
+      saveAll();
+      renderDomainProjects();
+      const item = document.querySelector(`.domain-proj-item[data-pid="${pid}"]`);
+      if (item) item.classList.add('expanded');
+    }
+
+    function _buildDomainPickers(initEmoji, initColor) {
+      selectedDomainEmoji = initEmoji;
+      selectedDomainColor = initColor;
       const row = document.getElementById('emojiPickerRow');
       row.innerHTML = '';
       DOMAIN_EMOJIS.forEach(e => {
         const btn = document.createElement('button');
-        btn.className = 'emoji-opt' + (e === selectedDomainEmoji ? ' selected' : '');
+        btn.className = 'emoji-opt' + (e === initEmoji ? ' selected' : '');
         btn.textContent = e;
         btn.onclick = () => {
           selectedDomainEmoji = e;
@@ -3284,12 +3504,11 @@
         };
         row.appendChild(btn);
       });
-      // Color swatches
       const sw = document.getElementById('domainColorSwatches');
       sw.innerHTML = '';
-      PROJECT_COLORS.forEach((c, idx) => {
+      PROJECT_COLORS.forEach(c => {
         const s = document.createElement('div');
-        s.className = 'color-swatch' + (idx === 0 ? ' selected' : '');
+        s.className = 'color-swatch' + (c === initColor ? ' selected' : '');
         s.style.background = c;
         s.onclick = () => {
           selectedDomainColor = c;
@@ -3298,14 +3517,36 @@
         };
         sw.appendChild(s);
       });
+    }
+
+    function openDomainModal() {
+      editingDomainId = null;
+      _buildDomainPickers('🗂️', '#0A84FF');
       document.getElementById('domainNameInput').value = '';
       document.getElementById('domainDescInput').value = '';
+      document.querySelector('#domainModal .sheet-title').textContent    = 'Nouveau domaine';
+      document.querySelector('#domainModal .sheet-btn-add').textContent  = 'Créer';
+      document.getElementById('domainModalBackdrop').classList.add('open');
+      document.getElementById('domainModal').classList.add('open');
+      setTimeout(() => document.getElementById('domainNameInput').focus(), 300);
+    }
+
+    function openEditDomainModal() {
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      editingDomainId = d.id;
+      _buildDomainPickers(d.emoji || '🗂️', d.color || '#0A84FF');
+      document.getElementById('domainNameInput').value = d.name;
+      document.getElementById('domainDescInput').value = d.description || '';
+      document.querySelector('#domainModal .sheet-title').textContent    = 'Modifier le domaine';
+      document.querySelector('#domainModal .sheet-btn-add').textContent  = 'Enregistrer';
       document.getElementById('domainModalBackdrop').classList.add('open');
       document.getElementById('domainModal').classList.add('open');
       setTimeout(() => document.getElementById('domainNameInput').focus(), 300);
     }
 
     function closeDomainModal() {
+      editingDomainId = null;
       document.getElementById('domainModalBackdrop').classList.remove('open');
       document.getElementById('domainModal').classList.remove('open');
     }
@@ -3314,15 +3555,30 @@
       const name = document.getElementById('domainNameInput').value.trim();
       if (!name) return;
       const desc = document.getElementById('domainDescInput').value.trim();
-      domains.push({
-        id: Date.now().toString(),
-        name,
-        emoji: selectedDomainEmoji,
-        color: selectedDomainColor,
-        description: desc,
-        goals: []
-      });
-      saveAll(); renderDomains(); closeDomainModal();
+      if (editingDomainId) {
+        const d = domains.find(x => x.id === editingDomainId);
+        if (d) {
+          d.name = name;
+          d.description = desc;
+          d.emoji = selectedDomainEmoji;
+          d.color = selectedDomainColor;
+        }
+        saveAll();
+        closeDomainModal();
+        if (activeDomainId) openDomain(activeDomainId);
+        renderDomains();
+      } else {
+        domains.push({
+          id: Date.now().toString(),
+          name,
+          emoji: selectedDomainEmoji,
+          color: selectedDomainColor,
+          description: desc,
+          goals: [],
+          projects: []
+        });
+        saveAll(); renderDomains(); closeDomainModal();
+      }
     }
 
     document.getElementById('domainGoalInput').addEventListener('keydown', e => {
@@ -3331,6 +3587,10 @@
 
     document.getElementById('domainNameInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('domainDescInput').focus();
+    });
+
+    document.getElementById('domainProjectInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addDomainProject();
     });
 
     // ---- INIT ----
