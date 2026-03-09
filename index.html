@@ -623,6 +623,85 @@
       font-weight: 500;
     }
 
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: 36px;
+      right: 36px;
+      z-index: 200;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(10,132,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .fab:hover {
+      background: var(--accent-hover);
+      transform: scale(1.08);
+      box-shadow: 0 6px 28px rgba(10,132,255,0.5);
+    }
+
+    .fab:active { transform: scale(0.95); }
+
+    /* MODAL */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .modal-card {
+      position: fixed;
+      bottom: 104px;
+      right: 36px;
+      z-index: 301;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 20px 18px;
+      width: 300px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.4,0.64,1);
+    }
+
+    .modal-card.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .modal-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
     /* EMPTY STATE */
     .empty {
       text-align: center;
@@ -768,12 +847,21 @@
           <div class="panel-icon green">🏷</div>
           <span class="panel-title">Catégories</span>
         </div>
-        <div class="input-group" style="margin-bottom:16px">
-          <input type="text" id="catInput" placeholder="Nouvelle catégorie…" />
-          <button class="btn-add" onclick="addCategory()">+</button>
-        </div>
         <div style="display:flex;flex-direction:column;gap:6px" id="catList"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- FAB catégorie (page Rappels uniquement) -->
+  <button class="fab" id="fab" onclick="openCatModal()" title="Nouvelle catégorie" style="display:none">+</button>
+
+  <!-- Modale ajout catégorie -->
+  <div class="modal-backdrop" id="catModalBackdrop" onclick="closeCatModal()"></div>
+  <div class="modal-card" id="catModal">
+    <p class="modal-title">Nouvelle catégorie</p>
+    <div class="input-group" style="margin-bottom:0">
+      <input type="text" id="catInput" placeholder="Nom de la catégorie…" />
+      <button class="btn-add" onclick="addCategory()">+</button>
     </div>
   </div>
 
@@ -893,6 +981,17 @@
       });
     }
 
+    function openCatModal() {
+      document.getElementById('catModalBackdrop').classList.add('open');
+      document.getElementById('catModal').classList.add('open');
+      setTimeout(() => document.getElementById('catInput').focus(), 80);
+    }
+
+    function closeCatModal() {
+      document.getElementById('catModalBackdrop').classList.remove('open');
+      document.getElementById('catModal').classList.remove('open');
+    }
+
     function addCategory() {
       const input = document.getElementById('catInput');
       const name = input.value.trim();
@@ -900,12 +999,12 @@
       categories.push(name);
       saveAll(); renderCategories(); renderRemindersFull();
       input.value = '';
+      closeCatModal();
     }
 
     function deleteCategory(i) {
       const name = categories[i];
       categories.splice(i, 1);
-      // Retire la catégorie des rappels liés
       reminders.forEach(r => { if (r.category === name) r.category = ''; });
       if (catFilter === name) catFilter = 'all';
       saveAll(); renderCategories(); renderRemindersFull(); renderRemindersHome(); renderToday();
@@ -913,6 +1012,7 @@
 
     document.getElementById('catInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') addCategory();
+      if (e.key === 'Escape') closeCatModal();
     });
 
     // ---- RAPPELS ----
@@ -1053,6 +1153,8 @@
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       document.getElementById('page-' + name).classList.add('active');
       document.getElementById('tab-' + name).classList.add('active');
+      document.getElementById('fab').style.display = name === 'rappels' ? 'flex' : 'none';
+      closeCatModal();
       if (name === 'rappels') { renderToday(); renderRemindersFull(); renderCategories(); }
     }
 
