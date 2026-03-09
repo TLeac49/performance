@@ -730,69 +730,61 @@
       flex-shrink: 0;
     }
 
-    /* PROJECTS KANBAN */
-    .kanban-board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      align-items: start;
+    /* PROJECTS VIEW */
+    .projects-filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
     }
 
-    @media (max-width: 700px)  { .kanban-board { grid-template-columns: 1fr; } }
-    @media (min-width: 701px) and (max-width: 1000px) { .kanban-board { grid-template-columns: repeat(2, 1fr); } }
-
-    .kanban-col {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-    }
-
-    .kanban-col-header {
+    .filter-chip {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 16px 16px 14px;
-      border-bottom: 1px solid var(--border);
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .kanban-col-dot {
-      width: 10px;
-      height: 10px;
+    .filter-chip:hover { border-color: var(--text-secondary); color: var(--text); }
+
+    .filter-chip.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: transparent;
+    }
+
+    .filter-chip-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    .kanban-col-title {
-      flex: 1;
-      font-size: 0.88rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      align-items: start;
     }
 
-    .kanban-col-count {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      background: var(--item-bg);
-      padding: 2px 8px;
-      border-radius: 50px;
-    }
+    @media (max-width: 600px) { .projects-grid { grid-template-columns: 1fr; } }
 
-    .kanban-col-body {
-      padding: 10px 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-height: 60px;
-    }
-
-    .kanban-empty {
-      font-size: 0.78rem;
-      color: var(--text-secondary);
+    .projects-empty {
+      grid-column: 1 / -1;
       text-align: center;
-      padding: 16px 0 8px;
+      padding: 40px;
+      color: var(--text-secondary);
       opacity: 0.55;
+      font-size: 0.9rem;
     }
 
     /* Drag & Drop */
@@ -803,23 +795,7 @@
       opacity: 0.35;
       transform: scale(0.97);
       box-shadow: none;
-    }
-
-    .kanban-col.drag-over {
-      border-color: var(--accent);
-      background: rgba(10,132,255,0.06);
-    }
-
-    .kanban-col.drag-over .kanban-col-body {
-      border-radius: 0 0 20px 20px;
-    }
-
-    .kanban-drop-placeholder {
-      height: 72px;
-      border: 2px dashed var(--accent);
-      border-radius: 16px;
-      background: rgba(10,132,255,0.06);
-      animation: itemIn 0.15s ease;
+      pointer-events: none;
     }
 
     .project-card {
@@ -1414,7 +1390,7 @@
         <h1>Projets</h1>
         <p>Organisez vos projets, avancez sereinement.</p>
       </div>
-      <div class="kanban-board" id="kanbanBoard"></div>
+      <div id="projectsBoard"></div>
     </div>
 
     <!-- VUE DÉTAIL (cachée par défaut) -->
@@ -1587,12 +1563,27 @@
     });
 
     // ---- PROJETS ----
-    let draggedProjectId = null;
+    let currentProjectFilter = 'all';
+
+    function getDragAfterElement(container, x, y) {
+      const cards = [...container.querySelectorAll('.project-card:not(.dragging)')];
+      return cards.reduce((closest, card) => {
+        const box = card.getBoundingClientRect();
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+        return dist < closest.dist ? { dist, el: card } : closest;
+      }, { dist: Infinity, el: null }).el;
+    }
 
     function makeProjectCard(p) {
       const done = p.tasks.filter(t => t.done).length;
       const total = p.tasks.length;
+      const remaining = total - done;
       const pct = total ? Math.round((done / total) * 100) : 0;
+      const statusKey = p.status || 'en-cours';
+      const cfg = STATUS_CONFIG[statusKey];
+
       const card = document.createElement('div');
       card.className = 'project-card';
       card.draggable = true;
@@ -1602,112 +1593,109 @@
         <div class="project-card-body">
           <div class="project-card-header">
             <span class="project-card-name">${escapeHtml(p.name)}</span>
+            <span class="project-status-chip" style="background:${cfg.color}1a;color:${cfg.color}">
+              ${cfg.label}
+            </span>
           </div>
           ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : ''}
           <div class="project-card-footer">
             <div class="project-progress-outer">
               <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
             </div>
-            <span class="project-task-count">${done}/${total}</span>
+            <span class="project-task-count">${remaining} restante${remaining !== 1 ? 's' : ''}</span>
           </div>
         </div>
       `;
 
-      // Clic → ouvre le projet (seulement si pas un drag)
-      card.addEventListener('click', () => {
-        if (!card.classList.contains('dragging')) openProject(p.id);
-      });
+      let didDrag = false;
 
-      // Drag
       card.addEventListener('dragstart', e => {
-        draggedProjectId = p.id;
+        didDrag = true;
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', p.id);
         setTimeout(() => card.classList.add('dragging'), 0);
       });
+
       card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
-        draggedProjectId = null;
-        document.querySelectorAll('.kanban-col').forEach(c => {
-          c.classList.remove('drag-over');
-          const ph = c.querySelector('.kanban-drop-placeholder');
-          if (ph) ph.remove();
-        });
+        // Read new DOM order and persist
+        const grid = document.querySelector('.projects-grid');
+        if (!grid) return;
+        const newIds = [...grid.querySelectorAll('.project-card')].map(c => parseInt(c.dataset.id));
+        const reordered = newIds.map(id => projects.find(pr => pr.id === id)).filter(Boolean);
+        if (currentProjectFilter === 'all') {
+          projects.splice(0, projects.length, ...reordered);
+        } else {
+          // Replace only the visible slots, keep others in original relative order
+          let ri = 0;
+          for (let i = 0; i < projects.length; i++) {
+            if ((projects[i].status || 'en-cours') === currentProjectFilter) {
+              projects[i] = reordered[ri++];
+            }
+          }
+        }
+        saveAll();
+        setTimeout(() => { didDrag = false; }, 0);
+      });
+
+      card.addEventListener('click', () => {
+        if (!didDrag) openProject(p.id);
       });
 
       return card;
     }
 
     function renderProjects() {
-      const board = document.getElementById('kanbanBoard');
+      const board = document.getElementById('projectsBoard');
       board.innerHTML = '';
-      const statuses = ['en-cours', 'pause', 'termine'];
-      statuses.forEach(statusKey => {
-        const cfg = STATUS_CONFIG[statusKey];
-        const colProjects = projects.filter(p => (p.status || 'en-cours') === statusKey);
 
-        const col = document.createElement('div');
-        col.className = 'kanban-col';
-        col.dataset.status = statusKey;
-
-        col.innerHTML = `
-          <div class="kanban-col-header">
-            <div class="kanban-col-dot" style="background:${cfg.color}"></div>
-            <span class="kanban-col-title">${cfg.label}</span>
-            <span class="kanban-col-count">${colProjects.length}</span>
-          </div>
-        `;
-
-        const body = document.createElement('div');
-        body.className = 'kanban-col-body';
-
-        if (colProjects.length === 0) {
-          body.innerHTML = `<div class="kanban-empty">Aucun projet</div>`;
-        } else {
-          colProjects.forEach(p => body.appendChild(makeProjectCard(p)));
-        }
-
-        // Drop zone events (sur toute la colonne)
-        col.addEventListener('dragover', e => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (!col.classList.contains('drag-over')) {
-            col.classList.add('drag-over');
-            // Placeholder
-            if (!col.querySelector('.kanban-drop-placeholder')) {
-              const ph = document.createElement('div');
-              ph.className = 'kanban-drop-placeholder';
-              body.appendChild(ph);
-              const empty = body.querySelector('.kanban-empty');
-              if (empty) empty.style.display = 'none';
-            }
-          }
-        });
-
-        col.addEventListener('dragleave', e => {
-          if (!col.contains(e.relatedTarget)) {
-            col.classList.remove('drag-over');
-            const ph = col.querySelector('.kanban-drop-placeholder');
-            if (ph) ph.remove();
-            const empty = col.querySelector('.kanban-empty');
-            if (empty) empty.style.display = '';
-          }
-        });
-
-        col.addEventListener('drop', e => {
-          e.preventDefault();
-          const id = parseInt(e.dataTransfer.getData('text/plain'));
-          const proj = projects.find(x => x.id === id);
-          if (proj && proj.status !== statusKey) {
-            proj.status = statusKey;
-            saveAll();
-          }
+      // Filter chips
+      const filterBar = document.createElement('div');
+      filterBar.className = 'projects-filters';
+      const filterDefs = [
+        { key: 'all', label: 'Projets', color: null },
+        ...Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({ key, label: cfg.label, color: cfg.color }))
+      ];
+      filterDefs.forEach(f => {
+        const chip = document.createElement('button');
+        chip.className = 'filter-chip' + (currentProjectFilter === f.key ? ' active' : '');
+        if (f.color) chip.innerHTML = `<span class="filter-chip-dot" style="background:${f.color}"></span>`;
+        chip.innerHTML += escapeHtml(f.label);
+        chip.addEventListener('click', () => {
+          currentProjectFilter = f.key;
           renderProjects();
         });
-
-        col.appendChild(body);
-        board.appendChild(col);
+        filterBar.appendChild(chip);
       });
+      board.appendChild(filterBar);
+
+      // Project grid
+      const grid = document.createElement('div');
+      grid.className = 'projects-grid';
+
+      const filtered = currentProjectFilter === 'all'
+        ? projects
+        : projects.filter(p => (p.status || 'en-cours') === currentProjectFilter);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="projects-empty">Aucun projet</div>';
+      } else {
+        filtered.forEach(p => grid.appendChild(makeProjectCard(p)));
+      }
+
+      // Drag-to-reorder: live DOM reordering on dragover
+      grid.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = grid.querySelector('.dragging');
+        if (!dragging) return;
+        const after = getDragAfterElement(grid, e.clientX, e.clientY);
+        if (after && after !== dragging) {
+          grid.insertBefore(dragging, after);
+        } else if (!after) {
+          grid.appendChild(dragging);
+        }
+      });
+
+      board.appendChild(grid);
     }
 
     function openProject(id) {
