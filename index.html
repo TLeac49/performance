@@ -1641,6 +1641,103 @@
     .stat-value { font-size: 2rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
     .stat-label { font-size: 0.78rem; color: var(--text-secondary); font-weight: 400; margin-top: 2px; }
     .stat-sub   { font-size: 0.7rem;  color: var(--text-secondary); opacity: 0.55; }
+
+    /* ── DOMAINES ──────────────────────────────────────────────────── */
+    .domains-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .domain-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .domain-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--domain-color, #0A84FF);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .domain-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    [data-theme="light"] .domain-card:hover {
+      border-color: rgba(0,0,0,0.12);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.07);
+    }
+
+    .domain-emoji {
+      font-size: 1.9rem;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .domain-card-body { flex: 1; min-width: 0; }
+    .domain-card-name {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .domain-card-sub  { font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px; }
+    .domain-card-chevron { color: var(--text-secondary); font-size: 1.3rem; flex-shrink: 0; }
+
+    .domain-detail-emoji { font-size: 3rem; margin-bottom: 8px; line-height: 1; }
+
+    .domains-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    .domains-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .domains-empty-text { font-size: 0.88rem; line-height: 1.7; }
+
+    /* Emoji picker in modal */
+    .emoji-picker-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .emoji-opt {
+      font-size: 1.35rem;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      background: var(--item-bg);
+    }
+    .emoji-opt:hover  { background: var(--surface-hover); }
+    .emoji-opt.selected { border-color: var(--border-focus); background: var(--surface-hover); }
   </style>
 </head>
 <body>
@@ -1651,6 +1748,7 @@
       <button class="nav-link active" id="tab-home" onclick="showPage('home')">Accueil</button>
       <button class="nav-link" id="tab-rappels" onclick="showPage('rappels')">Rappels</button>
       <button class="nav-link" id="tab-projets" onclick="showPage('projets')">Projets</button>
+      <button class="nav-link" id="tab-domaines" onclick="showPage('domaines')">Domaines</button>
     </div>
     <div class="nav-right">
       <span class="user-email-display" id="userEmailDisplay"></span>
@@ -1806,6 +1904,63 @@
     </div>
   </div>
 
+  <!-- PAGE DOMAINES -->
+  <div class="page" id="page-domaines">
+
+    <!-- LISTE -->
+    <div id="domaines-list">
+      <div class="hero" style="margin-bottom:36px">
+        <h1>Domaines</h1>
+        <p>Vos grandes sphères de vie, organisées en un coup d'œil.</p>
+      </div>
+      <div class="domains-grid" id="domainsGrid"></div>
+    </div>
+
+    <!-- DÉTAIL -->
+    <div id="domaines-detail" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="closeDomain()">
+          <span>‹</span> Domaines
+        </button>
+        <div class="detail-actions">
+          <button class="detail-del-btn" onclick="deleteActiveDomain()">Supprimer</button>
+        </div>
+      </div>
+      <div class="detail-accent-bar" id="domainAccentBar"></div>
+      <div class="domain-detail-emoji" id="domainDetailEmoji"></div>
+      <h2 class="detail-title" id="domainDetailName"></h2>
+      <p class="detail-desc" id="domainDetailDesc"></p>
+
+      <div class="detail-section-label" style="margin-top:24px">Objectifs</div>
+      <div class="input-group" style="margin-bottom:16px">
+        <input type="text" id="domainGoalInput" placeholder="Nouvel objectif…" />
+        <button class="btn-add" onclick="addDomainGoal()">+</button>
+      </div>
+      <ul class="item-list no-max" id="domainGoalList"></ul>
+    </div>
+  </div>
+
+  <!-- Modale création domaine -->
+  <div class="sheet-backdrop" id="domainModalBackdrop" onclick="closeDomainModal()"></div>
+  <div class="bottom-sheet" id="domainModal" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouveau domaine</div>
+    <div class="sheet-input-block">
+      <input type="text" id="domainNameInput" placeholder="Nom… (ex: Santé, Travail, Finance)" />
+    </div>
+    <div class="sheet-input-block">
+      <input type="text" id="domainDescInput" placeholder="Description (optionnel)…" />
+    </div>
+    <p class="sheet-cat-label">Icône</p>
+    <div class="emoji-picker-row" id="emojiPickerRow"></div>
+    <p class="sheet-cat-label" style="margin-top:14px">Couleur</p>
+    <div class="color-swatches" id="domainColorSwatches"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeDomainModal()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" onclick="addDomain()">Créer</button>
+    </div>
+  </div>
+
   <!-- Modale création projet -->
   <div class="sheet-backdrop" id="projectModalBackdrop" onclick="closeProjectModal()"></div>
   <div class="bottom-sheet" id="projectModal" style="max-width:460px">
@@ -1920,6 +2075,7 @@
     let reminders  = JSON.parse(localStorage.getItem('reminders')  || '[]');
     let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(['Travail','Personnel','Urgent']));
     let projects   = JSON.parse(localStorage.getItem('projects')   || '[]');
+    let domains    = JSON.parse(localStorage.getItem('domains')    || '[]');
     let expandedCats    = new Set();
     let sheetSelectedCat = '';
     let activeProjectId  = null;
@@ -1946,9 +2102,10 @@
       localStorage.setItem('reminders',  JSON.stringify(reminders));
       localStorage.setItem('categories', JSON.stringify(categories));
       localStorage.setItem('projects',   JSON.stringify(projects));
+      localStorage.setItem('domains',    JSON.stringify(domains));
       if (currentUser) {
         db.collection('users').doc(currentUser.uid)
-          .set({ tasks, reminders, categories, projects })
+          .set({ tasks, reminders, categories, projects, domains })
           .catch(e => console.error('Firestore save:', e));
       }
     }
@@ -2932,6 +3089,11 @@
         fab.style.display = 'flex';
         fab.onclick = openProjectModal;
         fab.title = 'Nouveau projet';
+      } else if (name === 'domaines') {
+        fab.style.display = 'flex';
+        fab.onclick = openDomainModal;
+        fab.title = 'Nouveau domaine';
+        renderDomains();
       } else {
         fab.style.display = 'none';
       }
@@ -2988,6 +3150,185 @@
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    // ---- DOMAINES ----
+    const DOMAIN_EMOJIS = ['🗂️','💼','🏋️','🧠','❤️','💡','🎯','📚','🎨','🏠','💰','🌱','✈️','🎮','🤝','🎓'];
+    let activeDomainId    = null;
+    let selectedDomainColor = '#0A84FF';
+    let selectedDomainEmoji = '🗂️';
+
+    function renderDomains() {
+      const grid = document.getElementById('domainsGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      if (domains.length === 0) {
+        grid.innerHTML = `
+          <div class="domains-empty">
+            <div class="domains-empty-icon">🗂️</div>
+            <div class="domains-empty-text">Aucun domaine pour l'instant.<br>Créez-en un avec le bouton <strong>+</strong></div>
+          </div>`;
+        return;
+      }
+      domains.forEach(d => {
+        const total = d.goals ? d.goals.length : 0;
+        const done  = d.goals ? d.goals.filter(g => g.done).length : 0;
+        const sub   = total === 0 ? 'Aucun objectif'
+          : `${done}/${total} objectif${total > 1 ? 's' : ''}`;
+        const card = document.createElement('div');
+        card.className = 'domain-card';
+        card.style.setProperty('--domain-color', d.color || '#0A84FF');
+        card.onclick = () => openDomain(d.id);
+        card.innerHTML = `
+          <div class="domain-emoji">${d.emoji || '🗂️'}</div>
+          <div class="domain-card-body">
+            <div class="domain-card-name">${escapeHtml(d.name)}</div>
+            <div class="domain-card-sub">${sub}</div>
+          </div>
+          <div class="domain-card-chevron">›</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openDomain(id) {
+      activeDomainId = id;
+      const d = domains.find(x => x.id === id);
+      if (!d) return;
+      document.getElementById('domaines-list').style.display   = 'none';
+      document.getElementById('domaines-detail').style.display = '';
+      document.getElementById('domainAccentBar').style.background = d.color || '#0A84FF';
+      document.getElementById('domainDetailEmoji').textContent = d.emoji || '🗂️';
+      document.getElementById('domainDetailName').textContent  = d.name;
+      document.getElementById('domainDetailDesc').textContent  = d.description || '';
+      renderDomainGoals();
+    }
+
+    function closeDomain() {
+      activeDomainId = null;
+      document.getElementById('domaines-detail').style.display = 'none';
+      document.getElementById('domaines-list').style.display   = '';
+    }
+
+    function deleteActiveDomain() {
+      if (!activeDomainId) return;
+      domains = domains.filter(d => d.id !== activeDomainId);
+      saveAll(); closeDomain(); renderDomains();
+    }
+
+    function renderDomainGoals() {
+      const d    = domains.find(x => x.id === activeDomainId);
+      const list = document.getElementById('domainGoalList');
+      if (!d || !list) return;
+      list.innerHTML = '';
+      if (!d.goals || d.goals.length === 0) {
+        list.innerHTML = '<li class="empty">Aucun objectif pour l\'instant.</li>';
+        return;
+      }
+      d.goals.forEach((g, i) => {
+        const li = document.createElement('li');
+        li.className = 'task-item' + (g.done ? ' done' : '');
+        li.innerHTML = `
+          <label class="checkbox-wrap">
+            <input type="checkbox" ${g.done ? 'checked' : ''} onchange="toggleDomainGoal(${i})" />
+            <div class="checkbox-custom"></div>
+          </label>
+          <span class="task-text">${escapeHtml(g.text)}</span>
+          <button class="btn-delete" onclick="deleteDomainGoal(${i})">✕</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function addDomainGoal() {
+      const input = document.getElementById('domainGoalInput');
+      const text  = input.value.trim();
+      if (!text || !activeDomainId) return;
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      if (!d.goals) d.goals = [];
+      d.goals.push({ text, done: false });
+      saveAll(); renderDomainGoals(); renderDomains();
+      input.value = '';
+    }
+
+    function toggleDomainGoal(i) {
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      d.goals[i].done = !d.goals[i].done;
+      saveAll(); renderDomainGoals(); renderDomains();
+    }
+
+    function deleteDomainGoal(i) {
+      const d = domains.find(x => x.id === activeDomainId);
+      if (!d) return;
+      d.goals.splice(i, 1);
+      saveAll(); renderDomainGoals(); renderDomains();
+    }
+
+    function openDomainModal() {
+      selectedDomainColor = '#0A84FF';
+      selectedDomainEmoji = '🗂️';
+      // Emoji picker
+      const row = document.getElementById('emojiPickerRow');
+      row.innerHTML = '';
+      DOMAIN_EMOJIS.forEach(e => {
+        const btn = document.createElement('button');
+        btn.className = 'emoji-opt' + (e === selectedDomainEmoji ? ' selected' : '');
+        btn.textContent = e;
+        btn.onclick = () => {
+          selectedDomainEmoji = e;
+          row.querySelectorAll('.emoji-opt').forEach(b => b.classList.toggle('selected', b.textContent === e));
+        };
+        row.appendChild(btn);
+      });
+      // Color swatches
+      const sw = document.getElementById('domainColorSwatches');
+      sw.innerHTML = '';
+      PROJECT_COLORS.forEach((c, idx) => {
+        const s = document.createElement('div');
+        s.className = 'color-swatch' + (idx === 0 ? ' selected' : '');
+        s.style.background = c;
+        s.onclick = () => {
+          selectedDomainColor = c;
+          sw.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+          s.classList.add('selected');
+        };
+        sw.appendChild(s);
+      });
+      document.getElementById('domainNameInput').value = '';
+      document.getElementById('domainDescInput').value = '';
+      document.getElementById('domainModalBackdrop').classList.add('active');
+      document.getElementById('domainModal').classList.add('active');
+      setTimeout(() => document.getElementById('domainNameInput').focus(), 300);
+    }
+
+    function closeDomainModal() {
+      document.getElementById('domainModalBackdrop').classList.remove('active');
+      document.getElementById('domainModal').classList.remove('active');
+    }
+
+    function addDomain() {
+      const name = document.getElementById('domainNameInput').value.trim();
+      if (!name) return;
+      const desc = document.getElementById('domainDescInput').value.trim();
+      domains.push({
+        id: Date.now().toString(),
+        name,
+        emoji: selectedDomainEmoji,
+        color: selectedDomainColor,
+        description: desc,
+        goals: []
+      });
+      saveAll(); renderDomains(); closeDomainModal();
+    }
+
+    document.getElementById('domainGoalInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addDomainGoal();
+    });
+
+    document.getElementById('domainNameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('domainDescInput').focus();
+    });
+
     // ---- INIT ----
     applyTheme(localStorage.getItem('theme') || 'dark');
     if (Notification.permission === 'default') Notification.requestPermission();
@@ -3005,10 +3346,12 @@
             reminders  = d.reminders  || [];
             categories = d.categories || ['Travail','Personnel','Urgent'];
             projects   = d.projects   || [];
+            domains    = d.domains    || [];
             localStorage.setItem('tasks',      JSON.stringify(tasks));
             localStorage.setItem('reminders',  JSON.stringify(reminders));
             localStorage.setItem('categories', JSON.stringify(categories));
             localStorage.setItem('projects',   JSON.stringify(projects));
+            localStorage.setItem('domains',    JSON.stringify(domains));
           }
         } catch(e) { console.error('Firestore load:', e); }
         document.getElementById('authOverlay').style.display = 'none';
@@ -3016,10 +3359,11 @@
         document.getElementById('logoutBtn').style.display = '';
         renderTasks();
         renderRemindersHome();
+        renderDomains();
         checkReminders();
       } else {
         currentUser = null;
-        tasks = []; reminders = []; categories = ['Travail','Personnel','Urgent']; projects = [];
+        tasks = []; reminders = []; categories = ['Travail','Personnel','Urgent']; projects = []; domains = [];
         document.getElementById('authOverlay').style.display = 'flex';
         document.getElementById('userEmailDisplay').textContent = '';
         document.getElementById('logoutBtn').style.display = 'none';
