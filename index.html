@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Focus — Tâches & Rappels</title>
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -1470,6 +1474,77 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* AUTH OVERLAY */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: var(--bg);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-card {
+      width: min(380px, calc(100vw - 32px));
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 40px 32px 36px;
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+    }
+
+    .auth-logo {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .auth-logo span { color: var(--accent); }
+
+    .auth-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 32px;
+    }
+
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.82rem;
+      text-align: center;
+      min-height: 20px;
+      margin-bottom: 12px;
+    }
+
+    .btn-logout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover { background: var(--surface-hover); color: var(--danger); }
+
+    .user-email-display {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -1482,7 +1557,9 @@
       <button class="nav-link" id="tab-projets" onclick="showPage('projets')">Projets</button>
     </div>
     <div class="nav-right">
+      <span class="user-email-display" id="userEmailDisplay"></span>
       <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Changer de thème">🌙</button>
+      <button class="btn-logout" id="logoutBtn" onclick="authLogout()" title="Se déconnecter" style="display:none">Déconnexion</button>
     </div>
   </nav>
 
@@ -1678,7 +1755,44 @@
 
   <div id="toast"></div>
 
+  <!-- AUTH OVERLAY -->
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div class="auth-logo">Focus<span>.</span></div>
+      <p class="auth-subtitle">Connectez-vous pour synchroniser vos données sur tous vos appareils.</p>
+      <div class="sheet-input-block" style="margin-bottom:10px">
+        <input type="email" id="authEmail" placeholder="Adresse email"
+          style="width:100%;background:transparent;border:none;padding:15px 16px;color:var(--text);font-family:inherit;font-size:0.95rem;outline:none"
+          onkeydown="if(event.key==='Enter')authLogin()" />
+      </div>
+      <div class="sheet-input-block" style="margin-bottom:8px">
+        <input type="password" id="authPassword" placeholder="Mot de passe (min. 6 caractères)"
+          style="width:100%;background:transparent;border:none;padding:15px 16px;color:var(--text);font-family:inherit;font-size:0.95rem;outline:none"
+          onkeydown="if(event.key==='Enter')authLogin()" />
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="sheet-btn sheet-btn-add" onclick="authLogin()">Se connecter</button>
+        <button class="sheet-btn sheet-btn-cancel" onclick="authSignup()">Créer un compte</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ---- FIREBASE ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDJbTtoXOTe-DpDxiFjOupmM_SzOcJbWY",
+      authDomain: "focus-60338.firebaseapp.com",
+      projectId: "focus-60338",
+      storageBucket: "focus-60338.firebasestorage.app",
+      messagingSenderId: "801891967468",
+      appId: "1:801891967468:web:d2374fbe19c95ebc72a0c9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+    let currentUser = null;
+
     // ---- DATA ----
     let tasks      = JSON.parse(localStorage.getItem('tasks')      || '[]');
     let reminders  = JSON.parse(localStorage.getItem('reminders')  || '[]');
@@ -1709,6 +1823,11 @@
       localStorage.setItem('reminders',  JSON.stringify(reminders));
       localStorage.setItem('categories', JSON.stringify(categories));
       localStorage.setItem('projects',   JSON.stringify(projects));
+      if (currentUser) {
+        db.collection('users').doc(currentUser.uid)
+          .set({ tasks, reminders, categories, projects })
+          .catch(e => console.error('Firestore save:', e));
+      }
     }
 
     // ---- TÂCHES ----
@@ -2668,11 +2787,74 @@
     // ---- INIT ----
     applyTheme(localStorage.getItem('theme') || 'dark');
     if (Notification.permission === 'default') Notification.requestPermission();
-
-    renderTasks();
-    renderRemindersHome();
     setInterval(checkReminders, 10000);
-    checkReminders();
+
+    // ---- AUTH ----
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        currentUser = user;
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            const d = doc.data();
+            tasks      = d.tasks      || [];
+            reminders  = d.reminders  || [];
+            categories = d.categories || ['Travail','Personnel','Urgent'];
+            projects   = d.projects   || [];
+            localStorage.setItem('tasks',      JSON.stringify(tasks));
+            localStorage.setItem('reminders',  JSON.stringify(reminders));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('projects',   JSON.stringify(projects));
+          }
+        } catch(e) { console.error('Firestore load:', e); }
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('userEmailDisplay').textContent = user.email;
+        document.getElementById('logoutBtn').style.display = '';
+        renderTasks();
+        renderRemindersHome();
+        checkReminders();
+      } else {
+        currentUser = null;
+        tasks = []; reminders = []; categories = ['Travail','Personnel','Urgent']; projects = [];
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('userEmailDisplay').textContent = '';
+        document.getElementById('logoutBtn').style.display = 'none';
+      }
+    });
+
+    async function authLogin() {
+      const email    = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errEl    = document.getElementById('authError');
+      errEl.textContent = '';
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch(e) { errEl.textContent = authErrorMsg(e.code); }
+    }
+
+    async function authSignup() {
+      const email    = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errEl    = document.getElementById('authError');
+      errEl.textContent = '';
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+      } catch(e) { errEl.textContent = authErrorMsg(e.code); }
+    }
+
+    function authLogout() { auth.signOut(); }
+
+    function authErrorMsg(code) {
+      const m = {
+        'auth/invalid-email':        'Adresse email invalide.',
+        'auth/user-not-found':       'Aucun compte trouvé pour cet email.',
+        'auth/wrong-password':       'Mot de passe incorrect.',
+        'auth/email-already-in-use': 'Cet email est déjà utilisé.',
+        'auth/weak-password':        'Mot de passe trop court (minimum 6 caractères).',
+        'auth/invalid-credential':   'Email ou mot de passe incorrect.',
+      };
+      return m[code] || 'Une erreur est survenue. Réessayez.';
+    }
   </script>
 
 </body>
