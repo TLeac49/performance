@@ -3,261 +3,497 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tâches & Rappels</title>
+  <title>Focus — Tâches & Rappels</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #000;
+      --surface: rgba(255,255,255,0.05);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.1);
+      --border-focus: rgba(255,255,255,0.3);
+      --text: #f5f5f7;
+      --text-secondary: rgba(255,255,255,0.45);
+      --accent: #0A84FF;
+      --accent-hover: #409CFF;
+      --danger: #FF453A;
+      --warning: #FF9F0A;
+      --success: #30D158;
+      --radius: 16px;
+      --radius-sm: 10px;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
       min-height: 100vh;
-      padding: 30px 20px;
-      color: #333;
+      color: var(--text);
+      overflow-x: hidden;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 30px;
-      color: #2c3e50;
+    /* Background gradient blob */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80vw;
+      height: 80vh;
+      background: radial-gradient(ellipse at center,
+        rgba(10, 132, 255, 0.12) 0%,
+        rgba(94, 92, 230, 0.06) 50%,
+        transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .container {
-      display: flex;
-      gap: 30px;
-      max-width: 1000px;
-      margin: 0 auto;
-      flex-wrap: wrap;
-    }
-
-    .panel {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px;
-      flex: 1;
-      min-width: 300px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-
-    .panel h2 {
-      font-size: 1.2rem;
-      margin-bottom: 18px;
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: #2c3e50;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
     }
 
-    .input-row {
+    .nav-logo {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .nav-logo span {
+      color: var(--accent);
+    }
+
+    .nav-tag {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* MAIN */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 64px 24px 80px;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #f5f5f7 0%, rgba(245,245,247,0.6) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      nav { padding: 0 20px; }
+      main { padding: 48px 16px 60px; }
+    }
+
+    /* PANEL */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color 0.3s;
+    }
+
+    .panel:hover {
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .panel-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .panel-icon.blue  { background: rgba(10,132,255,0.15); }
+    .panel-icon.orange { background: rgba(255,159,10,0.15); }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    /* INPUTS */
+    .input-group {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     input[type="text"],
     input[type="datetime-local"] {
       flex: 1;
-      padding: 10px 14px;
-      border: 1.5px solid #ddd;
-      border-radius: 10px;
-      font-size: 0.95rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 400;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--text-secondary);
+    }
+
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.5);
+      cursor: pointer;
     }
 
     input:focus {
-      border-color: #6c63ff;
+      border-color: var(--border-focus);
+      background: rgba(255,255,255,0.09);
     }
 
-    button.add-btn {
-      background: #6c63ff;
-      color: white;
+    .btn-add {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
       border: none;
-      border-radius: 10px;
-      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 1.3rem;
+      line-height: 1;
       cursor: pointer;
-      font-size: 1.2rem;
-      transition: background 0.2s;
-    }
-
-    button.add-btn:hover {
-      background: #574fd6;
-    }
-
-    .reminder-inputs {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.1s;
     }
 
-    .reminder-inputs .input-row {
-      margin-bottom: 0;
-    }
+    .btn-add:hover { background: var(--accent-hover); }
+    .btn-add:active { transform: scale(0.93); }
 
-    ul {
+    /* LIST */
+    .item-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
+      max-height: 340px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
     }
 
-    /* --- TÂCHES --- */
+    .item-list::-webkit-scrollbar { width: 4px; }
+    .item-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+    }
+
+    /* TASK ITEM */
     .task-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: #f8f8ff;
-      border-radius: 10px;
-      border: 1.5px solid #eee;
-      transition: opacity 0.2s;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: opacity 0.25s, background 0.2s;
+      animation: itemIn 0.25s ease;
     }
 
-    .task-item.done {
-      opacity: 0.5;
+    @keyframes itemIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .task-item.done .task-text {
-      text-decoration: line-through;
+    .task-item:hover { background: rgba(255,255,255,0.09); }
+
+    .task-item.done { opacity: 0.4; }
+    .task-item.done .task-text { text-decoration: line-through; }
+
+    /* Custom checkbox */
+    .checkbox-wrap {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
     }
 
-    .task-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #6c63ff;
+    .checkbox-wrap input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
       cursor: pointer;
+      margin: 0;
+    }
+
+    .checkbox-custom {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .checkbox-wrap input:checked ~ .checkbox-custom {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .checkbox-custom::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) scaleY(0);
+      transition: transform 0.15s;
+      margin-top: -2px;
+    }
+
+    .checkbox-wrap input:checked ~ .checkbox-custom::after {
+      transform: rotate(45deg) scaleY(1);
     }
 
     .task-text {
       flex: 1;
-      font-size: 0.95rem;
+      font-size: 0.875rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
     }
 
-    .delete-btn {
+    .btn-delete {
       background: none;
       border: none;
-      color: #ccc;
-      font-size: 1.1rem;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: color 0.2s;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      line-height: 1;
     }
 
-    .delete-btn:hover {
-      color: #e74c3c;
+    .btn-delete:hover {
+      color: var(--danger);
+      background: rgba(255,69,58,0.1);
     }
 
-    /* --- RAPPELS --- */
+    /* REMINDER ITEM */
     .reminder-item {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      padding: 10px 14px;
-      background: #fff8f0;
-      border-radius: 10px;
-      border: 1.5px solid #ffe0b2;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      animation: itemIn 0.25s ease;
+      transition: background 0.2s;
     }
 
+    .reminder-item:hover { background: rgba(255,255,255,0.09); }
+
     .reminder-item.triggered {
-      background: #fdecea;
-      border-color: #e74c3c;
+      border-color: rgba(255,69,58,0.4);
+      background: rgba(255,69,58,0.07);
       animation: pulse 1s ease-in-out 3;
     }
 
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+      50% { transform: scale(1.015); }
     }
 
-    .reminder-info {
-      flex: 1;
+    .reminder-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--warning);
+      margin-top: 5px;
+      flex-shrink: 0;
     }
+
+    .reminder-item.triggered .reminder-dot {
+      background: var(--danger);
+    }
+
+    .reminder-info { flex: 1; }
 
     .reminder-text {
-      font-size: 0.95rem;
+      font-size: 0.875rem;
       font-weight: 500;
+      letter-spacing: -0.01em;
     }
 
     .reminder-time {
-      font-size: 0.78rem;
-      color: #999;
-      margin-top: 2px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      font-weight: 400;
     }
 
+    /* EMPTY STATE */
     .empty {
       text-align: center;
-      color: #bbb;
-      font-size: 0.9rem;
-      padding: 20px 0;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      padding: 28px 0;
+      font-weight: 400;
     }
 
-    /* Notification toast */
+    /* TOAST */
     #toast {
       position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #2c3e50;
-      color: white;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-      display: none;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(30,30,30,0.95);
+      color: var(--text);
+      padding: 13px 22px;
+      border-radius: 50px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
       z-index: 999;
-      max-width: 300px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
+      opacity: 0;
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     #toast.show {
-      display: block;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
-  <h1>Tâches & Rappels</h1>
+  <nav>
+    <div class="nav-logo">Focus<span>.</span></div>
+    <div class="nav-tag">Tâches & Rappels</div>
+  </nav>
 
-  <div class="container">
+  <main>
 
-    <!-- LISTE DE TÂCHES -->
-    <div class="panel">
-      <h2>📋 Liste de tâches</h2>
-      <div class="input-row">
-        <input type="text" id="taskInput" placeholder="Nouvelle tâche..." />
-        <button class="add-btn" onclick="addTask()">+</button>
-      </div>
-      <ul id="taskList">
-        <li class="empty" id="taskEmpty">Aucune tâche pour l'instant.</li>
-      </ul>
+    <div class="hero">
+      <h1>Organisez votre journée.</h1>
+      <p>Simple, rapide, et toujours là où vous en avez besoin.</p>
     </div>
 
-    <!-- RAPPELS -->
-    <div class="panel">
-      <h2>🔔 Rappels</h2>
-      <div class="reminder-inputs">
-        <div class="input-row">
-          <input type="text" id="reminderText" placeholder="Rappel..." />
+    <div class="grid">
+
+      <!-- TÂCHES -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon blue">✓</div>
+          <span class="panel-title">Tâches</span>
         </div>
-        <div class="input-row">
+
+        <div class="input-group">
+          <input type="text" id="taskInput" placeholder="Nouvelle tâche…" />
+          <button class="btn-add" onclick="addTask()">+</button>
+        </div>
+
+        <ul class="item-list" id="taskList">
+          <li class="empty" id="taskEmpty">Aucune tâche pour l'instant.</li>
+        </ul>
+      </div>
+
+      <!-- RAPPELS -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon orange">◎</div>
+          <span class="panel-title">Rappels</span>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="reminderText" placeholder="Rappel…" />
+        </div>
+        <div class="input-group">
           <input type="datetime-local" id="reminderTime" />
-          <button class="add-btn" onclick="addReminder()">+</button>
+          <button class="btn-add" onclick="addReminder()">+</button>
         </div>
-      </div>
-      <ul id="reminderList">
-        <li class="empty" id="reminderEmpty">Aucun rappel pour l'instant.</li>
-      </ul>
-    </div>
 
-  </div>
+        <ul class="item-list" id="reminderList">
+          <li class="empty" id="reminderEmpty">Aucun rappel pour l'instant.</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
 
   <div id="toast"></div>
 
@@ -267,25 +503,25 @@
 
     // ---- TÂCHES ----
 
-    function saveTasks() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
+    function saveTasks() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
 
     function renderTasks() {
       const list = document.getElementById('taskList');
-      const empty = document.getElementById('taskEmpty');
       list.innerHTML = '';
       if (tasks.length === 0) {
-        list.appendChild(empty);
+        list.innerHTML = '<li class="empty">Aucune tâche pour l\'instant.</li>';
         return;
       }
       tasks.forEach((task, i) => {
         const li = document.createElement('li');
         li.className = 'task-item' + (task.done ? ' done' : '');
         li.innerHTML = `
-          <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${i})" />
+          <label class="checkbox-wrap">
+            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${i})" />
+            <div class="checkbox-custom"></div>
+          </label>
           <span class="task-text">${escapeHtml(task.text)}</span>
-          <button class="delete-btn" onclick="deleteTask(${i})">✕</button>
+          <button class="btn-delete" onclick="deleteTask(${i})">✕</button>
         `;
         list.appendChild(li);
       });
@@ -296,21 +532,18 @@
       const text = input.value.trim();
       if (!text) return;
       tasks.push({ text, done: false });
-      saveTasks();
-      renderTasks();
+      saveTasks(); renderTasks();
       input.value = '';
     }
 
     function toggleTask(i) {
       tasks[i].done = !tasks[i].done;
-      saveTasks();
-      renderTasks();
+      saveTasks(); renderTasks();
     }
 
     function deleteTask(i) {
       tasks.splice(i, 1);
-      saveTasks();
-      renderTasks();
+      saveTasks(); renderTasks();
     }
 
     document.getElementById('taskInput').addEventListener('keydown', e => {
@@ -319,16 +552,13 @@
 
     // ---- RAPPELS ----
 
-    function saveReminders() {
-      localStorage.setItem('reminders', JSON.stringify(reminders));
-    }
+    function saveReminders() { localStorage.setItem('reminders', JSON.stringify(reminders)); }
 
     function renderReminders() {
       const list = document.getElementById('reminderList');
-      const empty = document.getElementById('reminderEmpty');
       list.innerHTML = '';
       if (reminders.length === 0) {
-        list.appendChild(empty);
+        list.innerHTML = '<li class="empty">Aucun rappel pour l\'instant.</li>';
         return;
       }
       reminders.forEach((r, i) => {
@@ -337,11 +567,12 @@
         li.id = 'reminder-' + i;
         const date = new Date(r.time);
         li.innerHTML = `
+          <div class="reminder-dot"></div>
           <div class="reminder-info">
             <div class="reminder-text">${escapeHtml(r.text)}</div>
             <div class="reminder-time">${formatDate(date)}</div>
           </div>
-          <button class="delete-btn" onclick="deleteReminder(${i})">✕</button>
+          <button class="btn-delete" onclick="deleteReminder(${i})">✕</button>
         `;
         list.appendChild(li);
       });
@@ -352,16 +583,14 @@
       const time = document.getElementById('reminderTime').value;
       if (!text || !time) return;
       reminders.push({ text, time, triggered: false });
-      saveReminders();
-      renderReminders();
+      saveReminders(); renderReminders();
       document.getElementById('reminderText').value = '';
       document.getElementById('reminderTime').value = '';
     }
 
     function deleteReminder(i) {
       reminders.splice(i, 1);
-      saveReminders();
-      renderReminders();
+      saveReminders(); renderReminders();
     }
 
     function checkReminders() {
@@ -371,7 +600,7 @@
         if (!r.triggered && new Date(r.time) <= now) {
           r.triggered = true;
           changed = true;
-          showToast('🔔 Rappel : ' + r.text);
+          showToast('◎ Rappel : ' + r.text);
           const el = document.getElementById('reminder-' + i);
           if (el) el.classList.add('triggered');
           if (Notification.permission === 'granted') {
@@ -383,11 +612,9 @@
     }
 
     function formatDate(d) {
-      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+        + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
-
-    // ---- TOAST ----
 
     let toastTimeout;
     function showToast(msg) {
@@ -395,20 +622,14 @@
       toast.textContent = msg;
       toast.classList.add('show');
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => toast.classList.remove('show'), 5000);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 4500);
     }
-
-    // ---- UTILS ----
 
     function escapeHtml(str) {
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ---- INIT ----
-
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    if (Notification.permission === 'default') Notification.requestPermission();
 
     renderTasks();
     renderReminders();
