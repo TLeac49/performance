@@ -730,11 +730,69 @@
       flex-shrink: 0;
     }
 
-    /* PROJECTS GRID */
-    .projects-grid {
+    /* PROJECTS KANBAN */
+    .kanban-board {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    @media (max-width: 700px)  { .kanban-board { grid-template-columns: 1fr; } }
+    @media (min-width: 701px) and (max-width: 1000px) { .kanban-board { grid-template-columns: repeat(2, 1fr); } }
+
+    .kanban-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .kanban-col-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .kanban-col-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .kanban-col-title {
+      flex: 1;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .kanban-col-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--item-bg);
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+
+    .kanban-col-body {
+      padding: 10px 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 60px;
+    }
+
+    .kanban-empty {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 16px 0 8px;
+      opacity: 0.55;
     }
 
     .project-card {
@@ -825,20 +883,6 @@
       color: var(--text-secondary);
       white-space: nowrap;
       flex-shrink: 0;
-    }
-
-    .projects-empty {
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      padding: 60px 0;
-      grid-column: 1 / -1;
-    }
-
-    .projects-empty-icon {
-      font-size: 2.5rem;
-      margin-bottom: 12px;
-      opacity: 0.4;
     }
 
     /* PROJECT DETAIL */
@@ -995,14 +1039,17 @@
       inset: 0;
       z-index: 400;
       background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
     }
 
-    .sheet-backdrop.open { opacity: 1; pointer-events: all; }
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
 
     .bottom-sheet {
       position: fixed;
@@ -1334,13 +1381,13 @@
   <!-- PAGE PROJETS -->
   <div class="page" id="page-projets">
 
-    <!-- VUE LISTE -->
+    <!-- VUE LISTE KANBAN -->
     <div id="projets-list">
       <div class="hero" style="margin-bottom:48px">
         <h1>Projets</h1>
         <p>Organisez vos projets, avancez sereinement.</p>
       </div>
-      <div class="projects-grid" id="projectsGrid"></div>
+      <div class="kanban-board" id="kanbanBoard"></div>
     </div>
 
     <!-- VUE DÉTAIL (cachée par défaut) -->
@@ -1514,37 +1561,59 @@
 
     // ---- PROJETS ----
     function renderProjects() {
-      const grid = document.getElementById('projectsGrid');
-      grid.innerHTML = '';
-      if (projects.length === 0) {
-        grid.innerHTML = '<div class="projects-empty"><div class="projects-empty-icon">📁</div><p>Aucun projet pour l\'instant.</p><p style="font-size:0.8rem;margin-top:4px;opacity:0.6">Appuyez sur + pour en créer un.</p></div>';
-        return;
-      }
-      projects.forEach(p => {
-        const done = p.tasks.filter(t => t.done).length;
-        const total = p.tasks.length;
-        const pct = total ? Math.round((done / total) * 100) : 0;
-        const st = STATUS_CONFIG[p.status] || STATUS_CONFIG['en-cours'];
-        const card = document.createElement('div');
-        card.className = 'project-card';
-        card.onclick = () => openProject(p.id);
-        card.innerHTML = `
-          <div class="project-card-top" style="background:${p.color}"></div>
-          <div class="project-card-body">
-            <div class="project-card-header">
-              <span class="project-card-name">${escapeHtml(p.name)}</span>
-              <span class="project-status-chip" style="background:${st.color}22;color:${st.color}">${st.label}</span>
-            </div>
-            ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : '<p class="project-card-desc" style="opacity:0">—</p>'}
-            <div class="project-card-footer">
-              <div class="project-progress-outer">
-                <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
-              </div>
-              <span class="project-task-count">${done}/${total} tâches</span>
-            </div>
+      const board = document.getElementById('kanbanBoard');
+      board.innerHTML = '';
+      const statuses = ['en-cours', 'pause', 'termine'];
+      statuses.forEach(statusKey => {
+        const cfg = STATUS_CONFIG[statusKey];
+        const colProjects = projects.filter(p => (p.status || 'en-cours') === statusKey);
+
+        const col = document.createElement('div');
+        col.className = 'kanban-col';
+
+        // Header
+        col.innerHTML = `
+          <div class="kanban-col-header">
+            <div class="kanban-col-dot" style="background:${cfg.color}"></div>
+            <span class="kanban-col-title">${cfg.label}</span>
+            <span class="kanban-col-count">${colProjects.length}</span>
           </div>
         `;
-        grid.appendChild(card);
+
+        const body = document.createElement('div');
+        body.className = 'kanban-col-body';
+
+        if (colProjects.length === 0) {
+          body.innerHTML = `<div class="kanban-empty">Aucun projet</div>`;
+        } else {
+          colProjects.forEach(p => {
+            const done = p.tasks.filter(t => t.done).length;
+            const total = p.tasks.length;
+            const pct = total ? Math.round((done / total) * 100) : 0;
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.onclick = () => openProject(p.id);
+            card.innerHTML = `
+              <div class="project-card-top" style="background:${p.color}"></div>
+              <div class="project-card-body">
+                <div class="project-card-header">
+                  <span class="project-card-name">${escapeHtml(p.name)}</span>
+                </div>
+                ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : ''}
+                <div class="project-card-footer">
+                  <div class="project-progress-outer">
+                    <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
+                  </div>
+                  <span class="project-task-count">${done}/${total}</span>
+                </div>
+              </div>
+            `;
+            body.appendChild(card);
+          });
+        }
+
+        col.appendChild(body);
+        board.appendChild(col);
       });
     }
 
