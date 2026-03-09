@@ -15,6 +15,13 @@
       --border-focus: rgba(255,255,255,0.3);
       --text: #f5f5f7;
       --text-secondary: rgba(255,255,255,0.45);
+      --nav-bg: rgba(0,0,0,0.72);
+      --input-bg: rgba(255,255,255,0.06);
+      --input-bg-focus: rgba(255,255,255,0.09);
+      --item-bg: rgba(255,255,255,0.08);
+      --item-hover: rgba(255,255,255,0.09);
+      --delete-color: rgba(255,255,255,0.2);
+      --checkbox-border: rgba(255,255,255,0.2);
       --accent: #0A84FF;
       --accent-hover: #409CFF;
       --danger: #FF453A;
@@ -22,6 +29,23 @@
       --success: #30D158;
       --radius: 16px;
       --radius-sm: 10px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --surface: rgba(255,255,255,0.7);
+      --surface-hover: rgba(255,255,255,0.9);
+      --border: rgba(0,0,0,0.08);
+      --border-focus: rgba(0,0,0,0.25);
+      --text: #1d1d1f;
+      --text-secondary: rgba(0,0,0,0.45);
+      --nav-bg: rgba(245,245,247,0.8);
+      --input-bg: rgba(0,0,0,0.04);
+      --input-bg-focus: rgba(0,0,0,0.06);
+      --item-bg: rgba(0,0,0,0.03);
+      --item-hover: rgba(0,0,0,0.05);
+      --delete-color: rgba(0,0,0,0.2);
+      --checkbox-border: rgba(0,0,0,0.2);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,6 +75,13 @@
       z-index: 0;
     }
 
+    [data-theme="light"] body::before {
+      background: radial-gradient(ellipse at center,
+        rgba(10, 132, 255, 0.07) 0%,
+        rgba(94, 92, 230, 0.03) 50%,
+        transparent 70%);
+    }
+
     /* NAV */
     nav {
       position: sticky;
@@ -61,7 +92,7 @@
       justify-content: space-between;
       padding: 0 40px;
       height: 64px;
-      background: rgba(0,0,0,0.72);
+      background: var(--nav-bg);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-bottom: 1px solid var(--border);
@@ -111,7 +142,38 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 16px;
+      transition: background 0.3s;
     }
+
+    [data-theme="light"] .hero h1 {
+      background: linear-gradient(135deg, #1d1d1f 0%, rgba(29,29,31,0.6) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    /* THEME TOGGLE */
+    .btn-theme {
+      width: 36px;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s, transform 0.3s;
+      flex-shrink: 0;
+    }
+
+    .btn-theme:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+    }
+
+    .btn-theme:active { transform: rotate(20deg); }
 
     .hero p {
       font-size: 1.05rem;
@@ -185,7 +247,7 @@
     input[type="text"],
     input[type="datetime-local"] {
       flex: 1;
-      background: rgba(255,255,255,0.06);
+      background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 11px 14px;
@@ -209,7 +271,7 @@
 
     input:focus {
       border-color: var(--border-focus);
-      background: rgba(255,255,255,0.09);
+      background: var(--input-bg-focus);
     }
 
     .btn-add {
@@ -256,7 +318,7 @@
       align-items: center;
       gap: 12px;
       padding: 12px 14px;
-      background: var(--surface-hover);
+      background: var(--item-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       transition: opacity 0.25s, background 0.2s;
@@ -268,7 +330,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .task-item:hover { background: rgba(255,255,255,0.09); }
+    .task-item:hover { background: var(--item-hover); }
 
     .task-item.done { opacity: 0.4; }
     .task-item.done .task-text { text-decoration: line-through; }
@@ -294,7 +356,7 @@
       width: 20px;
       height: 20px;
       border-radius: 6px;
-      border: 1.5px solid rgba(255,255,255,0.2);
+      border: 1.5px solid var(--checkbox-border);
       background: transparent;
       transition: all 0.2s;
       display: flex;
@@ -334,7 +396,7 @@
     .btn-delete {
       background: none;
       border: none;
-      color: rgba(255,255,255,0.2);
+      color: var(--delete-color);
       font-size: 0.85rem;
       cursor: pointer;
       padding: 4px;
@@ -354,14 +416,14 @@
       align-items: flex-start;
       gap: 12px;
       padding: 12px 14px;
-      background: var(--surface-hover);
+      background: var(--item-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       animation: itemIn 0.25s ease;
       transition: background 0.2s;
     }
 
-    .reminder-item:hover { background: rgba(255,255,255,0.09); }
+    .reminder-item:hover { background: var(--item-hover); }
 
     .reminder-item.triggered {
       border-color: rgba(255,69,58,0.4);
@@ -444,6 +506,7 @@
   <nav>
     <div class="nav-logo">Focus<span>.</span></div>
     <div class="nav-tag">Tâches & Rappels</div>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Changer de thème">🌙</button>
   </nav>
 
   <main>
@@ -628,6 +691,28 @@
     function escapeHtml(str) {
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
+
+    // ---- THEME ----
+
+    function toggleTheme() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      const next = isLight ? 'dark' : 'light';
+      applyTheme(next);
+      localStorage.setItem('theme', next);
+    }
+
+    function applyTheme(theme) {
+      const btn = document.getElementById('themeBtn');
+      if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        btn.textContent = '☀️';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        btn.textContent = '🌙';
+      }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'dark');
 
     if (Notification.permission === 'default') Notification.requestPermission();
 
