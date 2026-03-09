@@ -58,7 +58,6 @@
       overflow-x: hidden;
     }
 
-    /* Background gradient blob */
     body::before {
       content: '';
       position: fixed;
@@ -96,6 +95,7 @@
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-bottom: 1px solid var(--border);
+      gap: 16px;
     }
 
     .nav-logo {
@@ -103,28 +103,83 @@
       font-weight: 600;
       letter-spacing: -0.02em;
       color: var(--text);
+      flex-shrink: 0;
     }
 
-    .nav-logo span {
-      color: var(--accent);
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 4px;
     }
 
-    .nav-tag {
-      font-size: 0.72rem;
-      font-weight: 500;
+    .nav-link {
+      background: none;
+      border: none;
       color: var(--text-secondary);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      padding: 6px 16px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
     }
 
-    /* MAIN */
-    main {
+    .nav-link.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .nav-link:not(.active):hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* THEME TOGGLE */
+    .btn-theme {
+      width: 36px;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s, transform 0.3s;
+    }
+
+    .btn-theme:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+    .btn-theme:active { transform: rotate(20deg); }
+
+    /* MAIN / PAGES */
+    .page {
       position: relative;
       z-index: 1;
       max-width: 960px;
       margin: 0 auto;
       padding: 64px 24px 80px;
+      display: none;
     }
+
+    .page.active { display: block; }
 
     /* HERO */
     .hero {
@@ -142,7 +197,6 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 16px;
-      transition: background 0.3s;
     }
 
     [data-theme="light"] .hero h1 {
@@ -150,30 +204,6 @@
       -webkit-background-clip: text;
       background-clip: text;
     }
-
-    /* THEME TOGGLE */
-    .btn-theme {
-      width: 36px;
-      height: 36px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      color: var(--text-secondary);
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s, border-color 0.2s, transform 0.3s;
-      flex-shrink: 0;
-    }
-
-    .btn-theme:hover {
-      background: var(--surface-hover);
-      border-color: var(--border-focus);
-    }
-
-    .btn-theme:active { transform: rotate(20deg); }
 
     .hero p {
       font-size: 1.05rem;
@@ -191,8 +221,9 @@
 
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
-      nav { padding: 0 20px; }
-      main { padding: 48px 16px 60px; }
+      nav { padding: 0 16px; }
+      .page { padding: 48px 16px 60px; }
+      .nav-link { padding: 6px 12px; }
     }
 
     /* PANEL */
@@ -206,9 +237,8 @@
       transition: border-color 0.3s;
     }
 
-    .panel:hover {
-      border-color: rgba(255,255,255,0.15);
-    }
+    .panel:hover { border-color: rgba(255,255,255,0.15); }
+    [data-theme="light"] .panel:hover { border-color: rgba(0,0,0,0.13); }
 
     .panel-header {
       display: flex;
@@ -228,13 +258,26 @@
       flex-shrink: 0;
     }
 
-    .panel-icon.blue  { background: rgba(10,132,255,0.15); }
+    .panel-icon.blue   { background: rgba(10,132,255,0.15); }
     .panel-icon.orange { background: rgba(255,159,10,0.15); }
+    .panel-icon.red    { background: rgba(255,69,58,0.15); }
+    .panel-icon.green  { background: rgba(48,209,88,0.15); }
 
     .panel-title {
       font-size: 1rem;
       font-weight: 600;
       letter-spacing: -0.02em;
+      flex: 1;
+    }
+
+    .panel-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 2px 8px;
     }
 
     /* INPUTS */
@@ -245,7 +288,8 @@
     }
 
     input[type="text"],
-    input[type="datetime-local"] {
+    input[type="datetime-local"],
+    select {
       flex: 1;
       background: var(--input-bg);
       border: 1px solid var(--border);
@@ -260,16 +304,16 @@
       -webkit-appearance: none;
     }
 
-    input[type="text"]::placeholder {
-      color: var(--text-secondary);
-    }
+    select { cursor: pointer; }
+
+    input[type="text"]::placeholder { color: var(--text-secondary); }
 
     input[type="datetime-local"]::-webkit-calendar-picker-indicator {
       filter: invert(0.5);
       cursor: pointer;
     }
 
-    input:focus {
+    input:focus, select:focus {
       border-color: var(--border-focus);
       background: var(--input-bg-focus);
     }
@@ -306,11 +350,10 @@
       scrollbar-color: rgba(255,255,255,0.1) transparent;
     }
 
+    .item-list.no-max { max-height: none; }
+
     .item-list::-webkit-scrollbar { width: 4px; }
-    .item-list::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.1);
-      border-radius: 4px;
-    }
+    .item-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
     /* TASK ITEM */
     .task-item {
@@ -331,11 +374,10 @@
     }
 
     .task-item:hover { background: var(--item-hover); }
-
     .task-item.done { opacity: 0.4; }
     .task-item.done .task-text { text-decoration: line-through; }
 
-    /* Custom checkbox */
+    /* Checkbox */
     .checkbox-wrap {
       position: relative;
       width: 20px;
@@ -403,6 +445,7 @@
       border-radius: 6px;
       transition: color 0.2s, background 0.2s;
       line-height: 1;
+      flex-shrink: 0;
     }
 
     .btn-delete:hover {
@@ -445,11 +488,9 @@
       flex-shrink: 0;
     }
 
-    .reminder-item.triggered .reminder-dot {
-      background: var(--danger);
-    }
+    .reminder-item.triggered .reminder-dot { background: var(--danger); }
 
-    .reminder-info { flex: 1; }
+    .reminder-info { flex: 1; min-width: 0; }
 
     .reminder-text {
       font-size: 0.875rem;
@@ -457,11 +498,129 @@
       letter-spacing: -0.01em;
     }
 
+    .reminder-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
     .reminder-time {
       font-size: 0.75rem;
       color: var(--text-secondary);
-      margin-top: 3px;
       font-weight: 400;
+    }
+
+    /* CATEGORY BADGE */
+    .cat-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 2px 7px;
+      border-radius: 50px;
+      white-space: nowrap;
+    }
+
+    /* TODAY BLOCK */
+    .today-block {
+      border-radius: 20px;
+      border: 1px solid rgba(255,159,10,0.25);
+      background: rgba(255,159,10,0.06);
+      padding: 28px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .today-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .today-date {
+      font-size: 0.75rem;
+      color: var(--warning);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    /* CATEGORY CHIPS FILTER */
+    .cat-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .cat-chip {
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .cat-chip:hover { border-color: var(--border-focus); color: var(--text); }
+
+    .cat-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* RAPPELS PAGE LAYOUT */
+    .rappels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .rappels-grid { grid-template-columns: 1fr; }
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    /* CATEGORY TAG (in list) */
+    .cat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      animation: itemIn 0.25s ease;
+    }
+
+    .cat-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cat-name {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 500;
     }
 
     /* EMPTY STATE */
@@ -505,69 +664,143 @@
 
   <nav>
     <div class="nav-logo">Focus<span>.</span></div>
-    <div class="nav-tag">Tâches & Rappels</div>
-    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Changer de thème">🌙</button>
+    <div class="nav-links">
+      <button class="nav-link active" id="tab-home" onclick="showPage('home')">Accueil</button>
+      <button class="nav-link" id="tab-rappels" onclick="showPage('rappels')">Rappels</button>
+    </div>
+    <div class="nav-right">
+      <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Changer de thème">🌙</button>
+    </div>
   </nav>
 
-  <main>
-
+  <!-- PAGE ACCUEIL -->
+  <div class="page active" id="page-home">
     <div class="hero">
       <h1>Organisez votre journée.</h1>
       <p>Simple, rapide, et toujours là où vous en avez besoin.</p>
     </div>
 
     <div class="grid">
-
       <!-- TÂCHES -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-icon blue">✓</div>
           <span class="panel-title">Tâches</span>
         </div>
-
         <div class="input-group">
           <input type="text" id="taskInput" placeholder="Nouvelle tâche…" />
           <button class="btn-add" onclick="addTask()">+</button>
         </div>
-
         <ul class="item-list" id="taskList">
-          <li class="empty" id="taskEmpty">Aucune tâche pour l'instant.</li>
+          <li class="empty">Aucune tâche pour l'instant.</li>
         </ul>
       </div>
 
-      <!-- RAPPELS -->
+      <!-- RAPPELS (résumé accueil) -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-icon orange">◎</div>
           <span class="panel-title">Rappels</span>
         </div>
-
         <div class="input-group">
           <input type="text" id="reminderText" placeholder="Rappel…" />
         </div>
         <div class="input-group">
           <input type="datetime-local" id="reminderTime" />
-          <button class="btn-add" onclick="addReminder()">+</button>
+          <button class="btn-add" onclick="addReminderHome()">+</button>
+        </div>
+        <ul class="item-list" id="reminderListHome">
+          <li class="empty">Aucun rappel pour l'instant.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE RAPPELS -->
+  <div class="page" id="page-rappels">
+    <div class="hero" style="margin-bottom:40px">
+      <h1>Rappels</h1>
+      <p>Gérez vos rappels par catégorie, ne ratez plus rien.</p>
+    </div>
+
+    <!-- AUJOURD'HUI -->
+    <div class="today-block" id="todayBlock">
+      <div class="today-header">
+        <div class="panel-icon orange">📅</div>
+        <span class="panel-title">Aujourd'hui</span>
+        <span class="today-date" id="todayDateLabel"></span>
+      </div>
+      <ul class="item-list no-max" id="todayList">
+        <li class="empty">Aucun rappel prévu aujourd'hui.</li>
+      </ul>
+    </div>
+
+    <div class="rappels-grid">
+      <!-- TOUS LES RAPPELS -->
+      <div class="panel" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <div class="panel-icon orange">◎</div>
+          <span class="panel-title">Tous les rappels</span>
+          <span class="panel-count" id="reminderCount">0</span>
         </div>
 
-        <ul class="item-list" id="reminderList">
-          <li class="empty" id="reminderEmpty">Aucun rappel pour l'instant.</li>
+        <!-- Filtres catégories -->
+        <div class="cat-chips" id="catFilterChips"></div>
+
+        <!-- Formulaire d'ajout -->
+        <div class="input-group">
+          <input type="text" id="reminderTextFull" placeholder="Nouveau rappel…" />
+        </div>
+        <div class="input-group">
+          <input type="datetime-local" id="reminderTimeFull" style="flex:2" />
+          <select id="reminderCatSelect"></select>
+          <button class="btn-add" onclick="addReminderFull()">+</button>
+        </div>
+
+        <ul class="item-list no-max" id="reminderListFull">
+          <li class="empty">Aucun rappel pour l'instant.</li>
         </ul>
       </div>
 
+      <!-- GESTION DES CATÉGORIES -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon green">🏷</div>
+          <span class="panel-title">Catégories</span>
+        </div>
+        <div class="input-group" style="margin-bottom:16px">
+          <input type="text" id="catInput" placeholder="Nouvelle catégorie…" />
+          <button class="btn-add" onclick="addCategory()">+</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px" id="catList"></div>
+      </div>
     </div>
-  </main>
+  </div>
 
   <div id="toast"></div>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    // ---- DATA ----
+    let tasks     = JSON.parse(localStorage.getItem('tasks')      || '[]');
+    let reminders = JSON.parse(localStorage.getItem('reminders')  || '[]');
+    let categories= JSON.parse(localStorage.getItem('categories') || JSON.stringify(['Travail','Personnel','Urgent']));
+    let catFilter = 'all';
+
+    const CAT_COLORS = ['#0A84FF','#BF5AF2','#FF453A','#30D158','#FF9F0A','#64D2FF','#FF6961','#5E5CE6'];
+
+    function catColor(name) {
+      let hash = 0;
+      for (let c of name) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
+      return CAT_COLORS[Math.abs(hash) % CAT_COLORS.length];
+    }
+
+    function saveAll() {
+      localStorage.setItem('tasks',      JSON.stringify(tasks));
+      localStorage.setItem('reminders',  JSON.stringify(reminders));
+      localStorage.setItem('categories', JSON.stringify(categories));
+    }
 
     // ---- TÂCHES ----
-
-    function saveTasks() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
-
     function renderTasks() {
       const list = document.getElementById('taskList');
       list.innerHTML = '';
@@ -595,30 +828,115 @@
       const text = input.value.trim();
       if (!text) return;
       tasks.push({ text, done: false });
-      saveTasks(); renderTasks();
+      saveAll(); renderTasks();
       input.value = '';
     }
 
     function toggleTask(i) {
       tasks[i].done = !tasks[i].done;
-      saveTasks(); renderTasks();
+      saveAll(); renderTasks();
     }
 
     function deleteTask(i) {
       tasks.splice(i, 1);
-      saveTasks(); renderTasks();
+      saveAll(); renderTasks();
     }
 
     document.getElementById('taskInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask();
     });
 
+    // ---- CATÉGORIES ----
+    function renderCategories() {
+      // Sélect du formulaire de rappel (page Rappels)
+      const sel = document.getElementById('reminderCatSelect');
+      sel.innerHTML = '<option value="">— Catégorie —</option>';
+      categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+
+      // Liste de gestion des catégories
+      const catList = document.getElementById('catList');
+      catList.innerHTML = '';
+      if (categories.length === 0) {
+        catList.innerHTML = '<div class="empty" style="padding:16px 0">Aucune catégorie.</div>';
+      }
+      categories.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.className = 'cat-item';
+        div.innerHTML = `
+          <div class="cat-color-dot" style="background:${catColor(c)}"></div>
+          <span class="cat-name">${escapeHtml(c)}</span>
+          <button class="btn-delete" onclick="deleteCategory(${i})">✕</button>
+        `;
+        catList.appendChild(div);
+      });
+
+      // Chips de filtre
+      const chips = document.getElementById('catFilterChips');
+      chips.innerHTML = '';
+      const all = document.createElement('button');
+      all.className = 'cat-chip' + (catFilter === 'all' ? ' active' : '');
+      all.textContent = 'Tous';
+      all.onclick = () => { catFilter = 'all'; renderCategories(); renderRemindersFull(); };
+      chips.appendChild(all);
+
+      categories.forEach(c => {
+        const chip = document.createElement('button');
+        chip.className = 'cat-chip' + (catFilter === c ? ' active' : '');
+        chip.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${catColor(c)};margin-right:5px;vertical-align:middle"></span>${escapeHtml(c)}`;
+        chip.onclick = () => { catFilter = c; renderCategories(); renderRemindersFull(); };
+        chips.appendChild(chip);
+      });
+    }
+
+    function addCategory() {
+      const input = document.getElementById('catInput');
+      const name = input.value.trim();
+      if (!name || categories.includes(name)) return;
+      categories.push(name);
+      saveAll(); renderCategories(); renderRemindersFull();
+      input.value = '';
+    }
+
+    function deleteCategory(i) {
+      const name = categories[i];
+      categories.splice(i, 1);
+      // Retire la catégorie des rappels liés
+      reminders.forEach(r => { if (r.category === name) r.category = ''; });
+      if (catFilter === name) catFilter = 'all';
+      saveAll(); renderCategories(); renderRemindersFull(); renderRemindersHome(); renderToday();
+    }
+
+    document.getElementById('catInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addCategory();
+    });
+
     // ---- RAPPELS ----
+    function reminderItemHTML(r, i, showDelete) {
+      const date = new Date(r.time);
+      const badge = r.category
+        ? `<span class="cat-badge" style="background:${catColor(r.category)}22;color:${catColor(r.category)}">${escapeHtml(r.category)}</span>`
+        : '';
+      const del = showDelete ? `<button class="btn-delete" onclick="deleteReminder(${i})">✕</button>` : '';
+      return `
+        <div class="reminder-dot"></div>
+        <div class="reminder-info">
+          <div class="reminder-text">${escapeHtml(r.text)}</div>
+          <div class="reminder-meta">
+            <span class="reminder-time">${formatDate(date)}</span>
+            ${badge}
+          </div>
+        </div>
+        ${del}
+      `;
+    }
 
-    function saveReminders() { localStorage.setItem('reminders', JSON.stringify(reminders)); }
-
-    function renderReminders() {
-      const list = document.getElementById('reminderList');
+    function renderRemindersHome() {
+      const list = document.getElementById('reminderListHome');
       list.innerHTML = '';
       if (reminders.length === 0) {
         list.innerHTML = '<li class="empty">Aucun rappel pour l\'instant.</li>';
@@ -627,33 +945,86 @@
       reminders.forEach((r, i) => {
         const li = document.createElement('li');
         li.className = 'reminder-item' + (r.triggered ? ' triggered' : '');
-        li.id = 'reminder-' + i;
-        const date = new Date(r.time);
-        li.innerHTML = `
-          <div class="reminder-dot"></div>
-          <div class="reminder-info">
-            <div class="reminder-text">${escapeHtml(r.text)}</div>
-            <div class="reminder-time">${formatDate(date)}</div>
-          </div>
-          <button class="btn-delete" onclick="deleteReminder(${i})">✕</button>
-        `;
+        li.id = 'rhome-' + i;
+        li.innerHTML = reminderItemHTML(r, i, true);
         list.appendChild(li);
       });
     }
 
-    function addReminder() {
+    function renderRemindersFull() {
+      const list = document.getElementById('reminderListFull');
+      const count = document.getElementById('reminderCount');
+      list.innerHTML = '';
+      const filtered = reminders.filter((r, i) => {
+        r._idx = i;
+        return catFilter === 'all' || r.category === catFilter;
+      });
+      count.textContent = reminders.length;
+      if (filtered.length === 0) {
+        list.innerHTML = '<li class="empty">Aucun rappel' + (catFilter !== 'all' ? ' dans cette catégorie' : '') + '.</li>';
+        return;
+      }
+      filtered.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'reminder-item' + (r.triggered ? ' triggered' : '');
+        li.id = 'rfull-' + r._idx;
+        li.innerHTML = reminderItemHTML(r, r._idx, true);
+        list.appendChild(li);
+      });
+    }
+
+    function renderToday() {
+      const list = document.getElementById('todayList');
+      const label = document.getElementById('todayDateLabel');
+      const today = new Date();
+      label.textContent = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      list.innerHTML = '';
+      const todayItems = reminders.filter((r, i) => {
+        const d = new Date(r.time);
+        return d.getFullYear() === today.getFullYear()
+          && d.getMonth()    === today.getMonth()
+          && d.getDate()     === today.getDate();
+      });
+      if (todayItems.length === 0) {
+        list.innerHTML = '<li class="empty">Aucun rappel prévu aujourd\'hui.</li>';
+        return;
+      }
+      todayItems.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'reminder-item' + (r.triggered ? ' triggered' : '');
+        li.innerHTML = reminderItemHTML(r, reminders.indexOf(r), false);
+        list.appendChild(li);
+      });
+    }
+
+    function addReminderHome() {
       const text = document.getElementById('reminderText').value.trim();
       const time = document.getElementById('reminderTime').value;
       if (!text || !time) return;
-      reminders.push({ text, time, triggered: false });
-      saveReminders(); renderReminders();
+      reminders.push({ text, time, triggered: false, category: '' });
+      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
       document.getElementById('reminderText').value = '';
       document.getElementById('reminderTime').value = '';
     }
 
+    function addReminderFull() {
+      const text = document.getElementById('reminderTextFull').value.trim();
+      const time = document.getElementById('reminderTimeFull').value;
+      const cat  = document.getElementById('reminderCatSelect').value;
+      if (!text || !time) return;
+      reminders.push({ text, time, triggered: false, category: cat });
+      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
+      document.getElementById('reminderTextFull').value = '';
+      document.getElementById('reminderTimeFull').value = '';
+    }
+
+    document.getElementById('reminderTextFull').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addReminderFull();
+    });
+
     function deleteReminder(i) {
       reminders.splice(i, 1);
-      saveReminders(); renderReminders();
+      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
     }
 
     function checkReminders() {
@@ -664,36 +1035,28 @@
           r.triggered = true;
           changed = true;
           showToast('◎ Rappel : ' + r.text);
-          const el = document.getElementById('reminder-' + i);
-          if (el) el.classList.add('triggered');
+          ['rhome-','rfull-'].forEach(prefix => {
+            const el = document.getElementById(prefix + i);
+            if (el) el.classList.add('triggered');
+          });
           if (Notification.permission === 'granted') {
             new Notification('Rappel', { body: r.text });
           }
         }
       });
-      if (changed) saveReminders();
+      if (changed) { saveAll(); renderToday(); }
     }
 
-    function formatDate(d) {
-      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
-        + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    let toastTimeout;
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => toast.classList.remove('show'), 4500);
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // ---- NAV / PAGES ----
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'rappels') { renderToday(); renderRemindersFull(); renderCategories(); }
     }
 
     // ---- THEME ----
-
     function toggleTheme() {
       const isLight = document.documentElement.getAttribute('data-theme') === 'light';
       const next = isLight ? 'dark' : 'light';
@@ -712,12 +1075,32 @@
       }
     }
 
-    applyTheme(localStorage.getItem('theme') || 'dark');
+    // ---- HELPERS ----
+    function formatDate(d) {
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+        + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
 
+    let toastTimeout;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---- INIT ----
+    applyTheme(localStorage.getItem('theme') || 'dark');
     if (Notification.permission === 'default') Notification.requestPermission();
 
     renderTasks();
-    renderReminders();
+    renderRemindersHome();
+    renderCategories();
     setInterval(checkReminders, 10000);
     checkReminders();
   </script>
