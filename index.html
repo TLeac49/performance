@@ -739,6 +739,265 @@
       flex-shrink: 0;
     }
 
+    /* PROJECTS GRID */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.18s;
+      animation: itemIn 0.25s ease;
+    }
+
+    .project-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    }
+
+    [data-theme="light"] .project-card:hover { border-color: rgba(0,0,0,0.15); }
+
+    .project-card-top {
+      height: 5px;
+      width: 100%;
+    }
+
+    .project-card-body {
+      padding: 20px 20px 18px;
+    }
+
+    .project-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .project-card-name {
+      font-size: 1rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    .project-status-chip {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 3px 8px;
+      border-radius: 50px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .project-card-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .project-card-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .project-progress-outer {
+      flex: 1;
+      height: 5px;
+      background: var(--item-bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .project-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .project-task-count {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .projects-empty {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      padding: 60px 0;
+      grid-column: 1 / -1;
+    }
+
+    .projects-empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    /* PROJECT DETAIL */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .detail-back {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 0;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+
+    .detail-back span { font-size: 1.3rem; line-height: 1; }
+    .detail-back:hover { opacity: 0.7; }
+
+    .detail-del-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 0;
+      transition: opacity 0.15s;
+    }
+
+    .detail-del-btn:hover { opacity: 0.7; }
+
+    .detail-accent-bar {
+      height: 4px;
+      border-radius: 2px;
+      margin-bottom: 20px;
+      width: 48px;
+    }
+
+    .detail-title {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .detail-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .detail-section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .detail-status-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-btn {
+      padding: 7px 16px;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .status-btn.active-status {
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* PROGRESS BAR (detail) */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar-outer {
+      flex: 1;
+      height: 8px;
+      background: var(--item-bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .progress-pct {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* COLOR SWATCHES */
+    .color-swatches {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .color-swatch:hover { transform: scale(1.12); }
+    .color-swatch.selected { border-color: #fff; transform: scale(1.08); }
+    [data-theme="light"] .color-swatch.selected { border-color: rgba(0,0,0,0.4); }
+
     /* MODAL RAPPEL (carte centrée) */
     .sheet-backdrop {
       position: fixed;
@@ -1002,6 +1261,7 @@
     <div class="nav-links">
       <button class="nav-link active" id="tab-home" onclick="showPage('home')">Accueil</button>
       <button class="nav-link" id="tab-rappels" onclick="showPage('rappels')">Rappels</button>
+      <button class="nav-link" id="tab-projets" onclick="showPage('projets')">Projets</button>
     </div>
     <div class="nav-right">
       <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Changer de thème">🌙</button>
@@ -1080,6 +1340,74 @@
     </div>
   </div>
 
+  <!-- PAGE PROJETS -->
+  <div class="page" id="page-projets">
+
+    <!-- VUE LISTE -->
+    <div id="projets-list">
+      <div class="hero" style="margin-bottom:48px">
+        <h1>Projets</h1>
+        <p>Organisez vos projets, avancez sereinement.</p>
+      </div>
+      <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+
+    <!-- VUE DÉTAIL (cachée par défaut) -->
+    <div id="projets-detail" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="closeProject()">
+          <span>‹</span> Projets
+        </button>
+        <div class="detail-actions">
+          <button class="detail-del-btn" onclick="deleteActiveProject()">Supprimer</button>
+        </div>
+      </div>
+      <div class="detail-accent-bar" id="detailAccentBar"></div>
+      <h2 class="detail-title" id="detailTitle"></h2>
+      <p class="detail-desc" id="detailDesc"></p>
+
+      <!-- Statut -->
+      <div class="detail-section-label">Statut</div>
+      <div class="detail-status-row" id="detailStatusRow"></div>
+
+      <!-- Progression -->
+      <div class="detail-section-label" style="margin-top:24px">Progression</div>
+      <div class="progress-wrap">
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="detailProgress"></div>
+        </div>
+        <span class="progress-pct" id="detailPct">0%</span>
+      </div>
+
+      <!-- Tâches -->
+      <div class="detail-section-label" style="margin-top:24px">Tâches</div>
+      <div class="input-group" style="margin-bottom:16px">
+        <input type="text" id="projectTaskInput" placeholder="Nouvelle tâche…" />
+        <button class="btn-add" onclick="addProjectTask()">+</button>
+      </div>
+      <ul class="item-list no-max" id="projectTaskList"></ul>
+    </div>
+  </div>
+
+  <!-- Modale création projet -->
+  <div class="sheet-backdrop" id="projectModalBackdrop" onclick="closeProjectModal()"></div>
+  <div class="bottom-sheet" id="projectModal" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouveau projet</div>
+    <div class="sheet-input-block">
+      <input type="text" id="projectNameInput" placeholder="Nom du projet…" />
+    </div>
+    <div class="sheet-input-block">
+      <input type="text" id="projectDescInput" placeholder="Description (optionnel)…" />
+    </div>
+    <p class="sheet-cat-label">Couleur</p>
+    <div class="color-swatches" id="colorSwatches"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeProjectModal()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" onclick="addProject()">Créer</button>
+    </div>
+  </div>
+
   <!-- FAB (page Rappels uniquement) -->
   <button class="fab" id="fab" onclick="openReminderModal()" title="Nouveau rappel" style="display:none">+</button>
 
@@ -1119,8 +1447,18 @@
     let tasks      = JSON.parse(localStorage.getItem('tasks')      || '[]');
     let reminders  = JSON.parse(localStorage.getItem('reminders')  || '[]');
     let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(['Travail','Personnel','Urgent']));
+    let projects   = JSON.parse(localStorage.getItem('projects')   || '[]');
     let expandedCats    = new Set();
     let sheetSelectedCat = '';
+    let activeProjectId  = null;
+    let selectedProjectColor = '#0A84FF';
+
+    const PROJECT_COLORS = ['#0A84FF','#BF5AF2','#FF453A','#30D158','#FF9F0A','#64D2FF','#5E5CE6','#FF6961','#AC8E68','#32ADE6'];
+    const STATUS_CONFIG = {
+      'en-cours': { label: 'En cours',  color: '#0A84FF' },
+      'pause':    { label: 'En pause',  color: '#FF9F0A' },
+      'termine':  { label: 'Terminé',   color: '#30D158' },
+    };
 
     const CAT_COLORS = ['#0A84FF','#BF5AF2','#FF453A','#30D158','#FF9F0A','#64D2FF','#FF6961','#5E5CE6'];
 
@@ -1134,6 +1472,7 @@
       localStorage.setItem('tasks',      JSON.stringify(tasks));
       localStorage.setItem('reminders',  JSON.stringify(reminders));
       localStorage.setItem('categories', JSON.stringify(categories));
+      localStorage.setItem('projects',   JSON.stringify(projects));
     }
 
     // ---- TÂCHES ----
@@ -1180,6 +1519,208 @@
 
     document.getElementById('taskInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask();
+    });
+
+    // ---- PROJETS ----
+    function renderProjects() {
+      const grid = document.getElementById('projectsGrid');
+      grid.innerHTML = '';
+      if (projects.length === 0) {
+        grid.innerHTML = '<div class="projects-empty"><div class="projects-empty-icon">📁</div><p>Aucun projet pour l\'instant.</p><p style="font-size:0.8rem;margin-top:4px;opacity:0.6">Appuyez sur + pour en créer un.</p></div>';
+        return;
+      }
+      projects.forEach(p => {
+        const done = p.tasks.filter(t => t.done).length;
+        const total = p.tasks.length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const st = STATUS_CONFIG[p.status] || STATUS_CONFIG['en-cours'];
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.onclick = () => openProject(p.id);
+        card.innerHTML = `
+          <div class="project-card-top" style="background:${p.color}"></div>
+          <div class="project-card-body">
+            <div class="project-card-header">
+              <span class="project-card-name">${escapeHtml(p.name)}</span>
+              <span class="project-status-chip" style="background:${st.color}22;color:${st.color}">${st.label}</span>
+            </div>
+            ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : '<p class="project-card-desc" style="opacity:0">—</p>'}
+            <div class="project-card-footer">
+              <div class="project-progress-outer">
+                <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
+              </div>
+              <span class="project-task-count">${done}/${total} tâches</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openProject(id) {
+      const p = projects.find(x => x.id === id);
+      if (!p) return;
+      activeProjectId = id;
+
+      document.getElementById('projets-list').style.display = 'none';
+      document.getElementById('projets-detail').style.display = 'block';
+      document.getElementById('fab').style.display = 'none';
+
+      document.getElementById('detailAccentBar').style.background = p.color;
+      document.getElementById('detailTitle').textContent = p.name;
+      document.getElementById('detailDesc').textContent = p.description || '';
+      document.getElementById('detailDesc').style.display = p.description ? '' : 'none';
+
+      renderDetailStatus(p);
+      renderDetailProgress(p);
+      renderProjectTasks(p);
+    }
+
+    function closeProject() {
+      activeProjectId = null;
+      document.getElementById('projets-list').style.display = '';
+      document.getElementById('projets-detail').style.display = 'none';
+      document.getElementById('fab').style.display = 'flex';
+      renderProjects();
+    }
+
+    function renderDetailStatus(p) {
+      const row = document.getElementById('detailStatusRow');
+      row.innerHTML = '';
+      Object.entries(STATUS_CONFIG).forEach(([key, cfg]) => {
+        const btn = document.createElement('button');
+        btn.className = 'status-btn' + (p.status === key ? ' active-status' : '');
+        btn.textContent = cfg.label;
+        if (p.status === key) btn.style.background = cfg.color;
+        btn.onclick = () => {
+          const proj = projects.find(x => x.id === p.id);
+          proj.status = key;
+          saveAll();
+          renderDetailStatus(proj);
+        };
+        row.appendChild(btn);
+      });
+    }
+
+    function renderDetailProgress(p) {
+      const done = p.tasks.filter(t => t.done).length;
+      const total = p.tasks.length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById('detailProgress').style.width = pct + '%';
+      document.getElementById('detailProgress').style.background = p.color;
+      document.getElementById('detailPct').textContent = pct + '%';
+    }
+
+    function renderProjectTasks(p) {
+      const list = document.getElementById('projectTaskList');
+      list.innerHTML = '';
+      if (p.tasks.length === 0) {
+        list.innerHTML = '<li class="empty">Aucune tâche dans ce projet.</li>';
+        return;
+      }
+      p.tasks.forEach((task, i) => {
+        const li = document.createElement('li');
+        li.className = 'task-item' + (task.done ? ' done' : '');
+        li.innerHTML = `
+          <label class="checkbox-wrap">
+            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleProjectTask(${i})" />
+            <div class="checkbox-custom"></div>
+          </label>
+          <span class="task-text">${escapeHtml(task.text)}</span>
+          <button class="btn-delete" onclick="deleteProjectTask(${i})">✕</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function addProjectTask() {
+      const input = document.getElementById('projectTaskInput');
+      const text = input.value.trim();
+      if (!text || activeProjectId === null) return;
+      const p = projects.find(x => x.id === activeProjectId);
+      p.tasks.push({ text, done: false });
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+      input.value = '';
+    }
+
+    function toggleProjectTask(i) {
+      const p = projects.find(x => x.id === activeProjectId);
+      p.tasks[i].done = !p.tasks[i].done;
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+    }
+
+    function deleteProjectTask(i) {
+      const p = projects.find(x => x.id === activeProjectId);
+      p.tasks.splice(i, 1);
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+    }
+
+    function deleteActiveProject() {
+      if (activeProjectId === null) return;
+      projects = projects.filter(x => x.id !== activeProjectId);
+      saveAll();
+      closeProject();
+    }
+
+    // Modale création projet
+    function openProjectModal() {
+      selectedProjectColor = PROJECT_COLORS[0];
+      renderColorSwatches();
+      document.getElementById('projectNameInput').value = '';
+      document.getElementById('projectDescInput').value = '';
+      document.getElementById('projectModalBackdrop').classList.add('open');
+      document.getElementById('projectModal').classList.add('open');
+      setTimeout(() => document.getElementById('projectNameInput').focus(), 250);
+    }
+
+    function closeProjectModal() {
+      document.getElementById('projectModalBackdrop').classList.remove('open');
+      document.getElementById('projectModal').classList.remove('open');
+    }
+
+    function renderColorSwatches() {
+      const container = document.getElementById('colorSwatches');
+      container.innerHTML = '';
+      PROJECT_COLORS.forEach(color => {
+        const sw = document.createElement('div');
+        sw.className = 'color-swatch' + (color === selectedProjectColor ? ' selected' : '');
+        sw.style.background = color;
+        sw.onclick = () => { selectedProjectColor = color; renderColorSwatches(); };
+        container.appendChild(sw);
+      });
+    }
+
+    function addProject() {
+      const name = document.getElementById('projectNameInput').value.trim();
+      if (!name) return;
+      const desc = document.getElementById('projectDescInput').value.trim();
+      projects.push({
+        id: Date.now(),
+        name,
+        description: desc,
+        color: selectedProjectColor,
+        status: 'en-cours',
+        tasks: [],
+      });
+      saveAll();
+      renderProjects();
+      closeProjectModal();
+      showToast('Projet « ' + name + ' » créé.');
+    }
+
+    document.getElementById('projectNameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addProject();
+      if (e.key === 'Escape') closeProjectModal();
+    });
+
+    document.getElementById('projectTaskInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addProjectTask();
     });
 
     // ---- CATÉGORIES ----
@@ -1434,10 +1975,31 @@
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       document.getElementById('page-' + name).classList.add('active');
       document.getElementById('tab-' + name).classList.add('active');
-      document.getElementById('fab').style.display = name === 'rappels' ? 'flex' : 'none';
+
+      // FAB context
+      const fab = document.getElementById('fab');
+      if (name === 'rappels') {
+        fab.style.display = 'flex';
+        fab.onclick = openReminderModal;
+        fab.title = 'Nouveau rappel';
+      } else if (name === 'projets') {
+        fab.style.display = 'flex';
+        fab.onclick = openProjectModal;
+        fab.title = 'Nouveau projet';
+      } else {
+        fab.style.display = 'none';
+      }
+
       closeCatModal();
       closeReminderModal();
+      closeProjectModal();
+
       if (name === 'rappels') { renderToday(); renderCatRows(); }
+      if (name === 'projets') {
+        // Si on était dans un projet, retour à la liste
+        if (activeProjectId !== null) closeProject();
+        else renderProjects();
+      }
     }
 
     // ---- THEME ----
