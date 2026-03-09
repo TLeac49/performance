@@ -2476,8 +2476,13 @@
     function addReminderFromModal() {
       const text = document.getElementById('sheetReminderText').value.trim();
       const time = document.getElementById('sheetReminderTime').value;
-      if (!text || !time) return;
-      reminders.push({ text, time, triggered: false, category: sheetSelectedCat });
+      if (!text) {
+        const inp = document.getElementById('sheetReminderText');
+        inp.style.outline = '2px solid var(--danger)';
+        setTimeout(() => inp.style.outline = '', 1500);
+        return;
+      }
+      reminders.push({ text, time: time || null, triggered: false, category: sheetSelectedCat });
       if (sheetSelectedCat) expandedCats.add(sheetSelectedCat);
       saveAll(); renderRemindersHome(); renderCatRows(); renderToday();
       document.getElementById('sheetReminderText').value = '';
@@ -2492,17 +2497,17 @@
 
     // ---- RAPPELS ----
     function reminderItemHTML(r, i, showDelete) {
-      const date = new Date(r.time);
       const badge = r.category
         ? `<span class="cat-badge" style="background:${catColor(r.category)}22;color:${catColor(r.category)}">${escapeHtml(r.category)}</span>`
         : '';
       const del = showDelete ? `<button class="btn-delete" onclick="deleteReminder(${i})">✕</button>` : '';
+      const timeStr = r.time ? formatDate(new Date(r.time)) : '<em style="opacity:.5">Sans date</em>';
       return `
         <div class="reminder-dot"></div>
         <div class="reminder-info">
           <div class="reminder-text">${escapeHtml(r.text)}</div>
           <div class="reminder-meta">
-            <span class="reminder-time">${formatDate(date)}</span>
+            <span class="reminder-time">${timeStr}</span>
             ${badge}
           </div>
         </div>
@@ -2533,7 +2538,8 @@
       const today = new Date();
       label.textContent = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
       list.innerHTML = '';
-      const todayItems = reminders.filter((r, i) => {
+      const todayItems = reminders.filter(r => {
+        if (!r.time) return false;
         const d = new Date(r.time);
         return d.getFullYear() === today.getFullYear()
           && d.getMonth()    === today.getMonth()
@@ -2570,7 +2576,7 @@
       const now = new Date();
       let changed = false;
       reminders.forEach((r, i) => {
-        if (!r.triggered && new Date(r.time) <= now) {
+        if (!r.triggered && r.time && new Date(r.time) <= now) {
           r.triggered = true;
           changed = true;
           showToast('◎ Rappel : ' + r.text);
@@ -2610,6 +2616,7 @@
       closeCatModal();
       closeReminderModal();
       closeProjectModal();
+      closeDecompose();
 
       if (name === 'rappels') { renderToday(); renderCatRows(); }
       if (name === 'projets') {
@@ -2654,7 +2661,8 @@
     }
 
     function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      if (str == null) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     // ---- INIT ----
