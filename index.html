@@ -453,6 +453,183 @@
       background: rgba(255,69,58,0.1);
     }
 
+    /* ── PROJECT TASKS WITH SUBTASKS ───────────────────────────────── */
+    .proj-task-item {
+      display: flex;
+      flex-direction: column;
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: background 0.2s;
+      animation: itemIn 0.25s ease;
+      overflow: hidden;
+    }
+
+    .proj-task-item:hover { background: var(--item-hover); }
+
+    .proj-task-item.done > .task-main-row .task-text {
+      text-decoration: line-through;
+      opacity: 0.45;
+    }
+
+    .task-main-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+
+    .task-sub-badge {
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(10,132,255,0.12);
+      padding: 1px 7px;
+      border-radius: 50px;
+      white-space: nowrap;
+    }
+
+    .task-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .task-action-btn:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+
+    .task-expand-btn { transition: transform 0.2s; }
+    .task-expand-btn.open { transform: rotate(180deg); }
+
+    /* Subtasks */
+    .subtask-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      padding: 0 12px 8px 46px;
+    }
+
+    .subtask-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .subtask-item:hover { background: rgba(255,255,255,0.05); }
+
+    .subtask-item .checkbox-wrap { width: 16px; height: 16px; }
+    .subtask-item .checkbox-custom { width: 16px; height: 16px; border-radius: 4px; }
+
+    .subtask-text {
+      flex: 1;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+    .subtask-item.done .subtask-text { text-decoration: line-through; opacity: 0.45; }
+
+    .add-subtask-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 10px 46px;
+    }
+    .add-subtask-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 4px 2px;
+      outline: none;
+    }
+    .add-subtask-row input:focus { border-bottom-color: var(--accent); }
+    .add-subtask-row input::placeholder { color: var(--text-secondary); opacity: 0.5; }
+    .add-subtask-row .btn-add {
+      width: 24px; height: 24px;
+      font-size: 1rem; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Subtask mini progress bar on task card */
+    .task-sub-progress {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .task-sub-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* ── DECOMPOSE SHEET ──────────────────────────────────────────── */
+    .decompose-task-name {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: var(--item-bg);
+      border-radius: var(--radius-sm);
+      font-style: italic;
+    }
+
+    .template-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .template-chip {
+      padding: 5px 12px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .template-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .decompose-subs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .decompose-sub-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      animation: itemIn 0.2s ease;
+    }
+    .decompose-sub-row span { flex: 1; font-size: 0.875rem; }
+    .decompose-sub-row button {
+      background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; font-size: 0.85rem; padding: 2px 4px; border-radius: 4px;
+    }
+    .decompose-sub-row button:hover { color: var(--danger); }
+
     /* REMINDER ITEM */
     .reminder-item {
       display: flex;
@@ -1449,6 +1626,24 @@
     </div>
   </div>
 
+  <!-- Modale décomposition de tâche -->
+  <div class="sheet-backdrop" id="decomposeBackdrop" onclick="closeDecompose()"></div>
+  <div class="bottom-sheet" id="decomposeSheet" style="max-width:500px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Décomposer en sous-tâches</div>
+    <div class="decompose-task-name" id="decomposeTaskName"></div>
+    <div class="template-chips" id="decomposeTemplateChips"></div>
+    <div class="decompose-subs" id="decomposeSubs"></div>
+    <div class="input-group" style="margin-bottom:20px">
+      <input type="text" id="decomposeInput" placeholder="Ajouter une sous-tâche…" />
+      <button class="btn-add" onclick="decomposeAddSub()">+</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeDecompose()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" onclick="applyDecompose()">Appliquer</button>
+    </div>
+  </div>
+
   <!-- FAB (page Rappels uniquement) -->
   <button class="fab" id="fab" onclick="openReminderModal()" title="Nouveau rappel" style="display:none">+</button>
 
@@ -1577,10 +1772,8 @@
     }
 
     function makeProjectCard(p) {
-      const done = p.tasks.filter(t => t.done).length;
-      const total = p.tasks.length;
+      const { done, total, pct } = calcProjectProgress(p);
       const remaining = total - done;
-      const pct = total ? Math.round((done / total) * 100) : 0;
       const statusKey = p.status || 'en-cours';
       const cfg = STATUS_CONFIG[statusKey];
 
@@ -1743,15 +1936,36 @@
       });
     }
 
+    // ── Progress helpers ──────────────────────────────────────────────
+    function calcProjectProgress(p) {
+      let done = 0, total = 0;
+      p.tasks.forEach(task => {
+        const subs = task.subtasks || [];
+        if (subs.length > 0) {
+          done  += subs.filter(s => s.done).length;
+          total += subs.length;
+        } else {
+          done  += task.done ? 1 : 0;
+          total += 1;
+        }
+      });
+      return { done, total, pct: total ? Math.round(done / total * 100) : 0 };
+    }
+
+    function isTaskDone(task) {
+      const subs = task.subtasks || [];
+      if (subs.length > 0) return subs.every(s => s.done);
+      return task.done;
+    }
+
     function renderDetailProgress(p) {
-      const done = p.tasks.filter(t => t.done).length;
-      const total = p.tasks.length;
-      const pct = total ? Math.round((done / total) * 100) : 0;
+      const { done, total, pct } = calcProjectProgress(p);
       document.getElementById('detailProgress').style.width = pct + '%';
       document.getElementById('detailProgress').style.background = p.color;
       document.getElementById('detailPct').textContent = pct + '%';
     }
 
+    // ── Task rendering ────────────────────────────────────────────────
     function renderProjectTasks(p) {
       const list = document.getElementById('projectTaskList');
       list.innerHTML = '';
@@ -1759,27 +1973,174 @@
         list.innerHTML = '<li class="empty">Aucune tâche dans ce projet.</li>';
         return;
       }
-      p.tasks.forEach((task, i) => {
-        const li = document.createElement('li');
-        li.className = 'task-item' + (task.done ? ' done' : '');
-        li.innerHTML = `
-          <label class="checkbox-wrap">
-            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleProjectTask(${i})" />
-            <div class="checkbox-custom"></div>
-          </label>
-          <span class="task-text">${escapeHtml(task.text)}</span>
-          <button class="btn-delete" onclick="deleteProjectTask(${i})">✕</button>
-        `;
-        list.appendChild(li);
-      });
+      p.tasks.forEach((task, i) => buildTaskItem(list, task, i, p));
     }
 
+    function buildTaskItem(list, task, i, p) {
+      const subs      = task.subtasks || [];
+      const taskDone  = isTaskDone(task);
+      const expanded  = !!task.expanded;
+
+      const li = document.createElement('li');
+      li.className = 'proj-task-item' + (taskDone ? ' done' : '');
+
+      // ── Main row ──
+      const mainRow = document.createElement('div');
+      mainRow.className = 'task-main-row';
+
+      // Checkbox (aggregate when has subtasks)
+      const label = document.createElement('label');
+      label.className = 'checkbox-wrap';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = taskDone;
+      cb.addEventListener('change', () => toggleProjectTask(i));
+      const cbCustom = document.createElement('div');
+      cbCustom.className = 'checkbox-custom';
+      label.append(cb, cbCustom);
+
+      // Text
+      const span = document.createElement('span');
+      span.className = 'task-text';
+      span.textContent = task.text;
+
+      // Sub-badge or mini progress
+      let badgeEl = null;
+      if (subs.length > 0) {
+        const doneSubs = subs.filter(s => s.done).length;
+        badgeEl = document.createElement('span');
+        badgeEl.className = 'task-sub-badge';
+        badgeEl.textContent = `${doneSubs}/${subs.length}`;
+      }
+
+      // Action buttons
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.alignItems = 'center';
+      actions.style.gap = '2px';
+
+      // Expand button (only if has subtasks)
+      if (subs.length > 0) {
+        const expandBtn = document.createElement('button');
+        expandBtn.className = 'task-action-btn task-expand-btn' + (expanded ? ' open' : '');
+        expandBtn.title = expanded ? 'Réduire' : 'Développer';
+        expandBtn.textContent = '⌄';
+        expandBtn.addEventListener('click', () => {
+          task.expanded = !task.expanded;
+          renderProjectTasks(p);
+        });
+        actions.appendChild(expandBtn);
+      }
+
+      // Add subtask button
+      const addSubBtn = document.createElement('button');
+      addSubBtn.className = 'task-action-btn';
+      addSubBtn.title = 'Ajouter une sous-tâche';
+      addSubBtn.textContent = '+';
+      addSubBtn.addEventListener('click', () => showAddSubtaskRow(li, i, p));
+      actions.appendChild(addSubBtn);
+
+      // Decompose button
+      const decompBtn = document.createElement('button');
+      decompBtn.className = 'task-action-btn';
+      decompBtn.title = 'Décomposer en sous-tâches';
+      decompBtn.textContent = '≡';
+      decompBtn.style.fontSize = '1rem';
+      decompBtn.addEventListener('click', () => openDecompose(i));
+      actions.appendChild(decompBtn);
+
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-delete';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', () => deleteProjectTask(i));
+      actions.appendChild(delBtn);
+
+      mainRow.append(label, span);
+      if (badgeEl) mainRow.appendChild(badgeEl);
+      mainRow.appendChild(actions);
+      li.appendChild(mainRow);
+
+      // ── Subtask list ──
+      if (subs.length > 0 && expanded) {
+        const subList = document.createElement('ul');
+        subList.className = 'subtask-list';
+        subList.style.listStyle = 'none';
+        subs.forEach((sub, si) => {
+          const subLi = document.createElement('li');
+          subLi.className = 'subtask-item' + (sub.done ? ' done' : '');
+
+          const subLabel = document.createElement('label');
+          subLabel.className = 'checkbox-wrap';
+          const subCb = document.createElement('input');
+          subCb.type = 'checkbox';
+          subCb.checked = sub.done;
+          subCb.addEventListener('change', () => toggleSubtask(i, si));
+          const subCbC = document.createElement('div');
+          subCbC.className = 'checkbox-custom';
+          subLabel.append(subCb, subCbC);
+
+          const subSpan = document.createElement('span');
+          subSpan.className = 'subtask-text';
+          subSpan.textContent = sub.text;
+
+          const subDel = document.createElement('button');
+          subDel.className = 'btn-delete';
+          subDel.style.fontSize = '0.75rem';
+          subDel.textContent = '✕';
+          subDel.addEventListener('click', () => deleteSubtask(i, si));
+
+          subLi.append(subLabel, subSpan, subDel);
+          subList.appendChild(subLi);
+        });
+        li.appendChild(subList);
+      }
+
+      list.appendChild(li);
+    }
+
+    function showAddSubtaskRow(li, taskIdx, p) {
+      // Remove any existing add-sub row
+      li.querySelector('.add-subtask-row')?.remove();
+      const row = document.createElement('div');
+      row.className = 'add-subtask-row';
+      const inp = document.createElement('input');
+      inp.placeholder = 'Nouvelle sous-tâche…';
+      inp.autofocus = true;
+      const confirmAdd = () => {
+        const text = inp.value.trim();
+        if (text) {
+          const task = p.tasks[taskIdx];
+          if (!task.subtasks) task.subtasks = [];
+          task.subtasks.push({ id: Date.now(), text, done: false });
+          task.expanded = true;
+          saveAll();
+          renderProjectTasks(p);
+          renderDetailProgress(p);
+        } else {
+          row.remove();
+        }
+      };
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmAdd();
+        if (e.key === 'Escape') row.remove();
+      });
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-add';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', confirmAdd);
+      row.append(inp, addBtn);
+      li.appendChild(row);
+      setTimeout(() => inp.focus(), 0);
+    }
+
+    // ── CRUD operations ───────────────────────────────────────────────
     function addProjectTask() {
       const input = document.getElementById('projectTaskInput');
       const text = input.value.trim();
       if (!text || activeProjectId === null) return;
       const p = projects.find(x => x.id === activeProjectId);
-      p.tasks.push({ text, done: false });
+      p.tasks.push({ id: Date.now(), text, done: false, subtasks: [], expanded: false });
       saveAll();
       renderProjectTasks(p);
       renderDetailProgress(p);
@@ -1788,7 +2149,31 @@
 
     function toggleProjectTask(i) {
       const p = projects.find(x => x.id === activeProjectId);
-      p.tasks[i].done = !p.tasks[i].done;
+      const task = p.tasks[i];
+      const subs = task.subtasks || [];
+      if (subs.length > 0) {
+        const allDone = subs.every(s => s.done);
+        subs.forEach(s => { s.done = !allDone; });
+      } else {
+        task.done = !task.done;
+      }
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+    }
+
+    function toggleSubtask(taskIdx, subIdx) {
+      const p = projects.find(x => x.id === activeProjectId);
+      const sub = p.tasks[taskIdx].subtasks[subIdx];
+      sub.done = !sub.done;
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+    }
+
+    function deleteSubtask(taskIdx, subIdx) {
+      const p = projects.find(x => x.id === activeProjectId);
+      p.tasks[taskIdx].subtasks.splice(subIdx, 1);
       saveAll();
       renderProjectTasks(p);
       renderDetailProgress(p);
@@ -1801,6 +2186,108 @@
       renderProjectTasks(p);
       renderDetailProgress(p);
     }
+
+    // ── Decompose sheet ───────────────────────────────────────────────
+    const DECOMPOSE_TEMPLATES = {
+      'déménag':    ['Trouver un déménageur ou louer un camion', 'Faire des cartons', 'Changer d\'adresse (banque, impôts, CAF…)', 'Résilier et transférer les contrats', 'Nettoyer l\'ancien logement'],
+      'voyage':     ['Réserver les billets de transport', 'Réserver l\'hébergement', 'Préparer la valise', 'Vérifier passeport/visa', 'Prévoir les activités sur place'],
+      'présent':    ['Définir le message clé', 'Préparer le contenu et les exemples', 'Créer les slides', 'Répétition à voix haute', 'Préparer le matériel technique'],
+      'événem':     ['Définir la liste d\'invités', 'Choisir et réserver le lieu', 'Préparer le programme', 'Gérer l\'intendance (repas, matériel)', 'Envoyer les invitations'],
+      'rapport':    ['Collecter les données sources', 'Rédiger l\'introduction', 'Développer les sections principales', 'Ajouter les visuels / graphiques', 'Relecture et corrections'],
+      'site':       ['Définir les pages et les contenus', 'Créer les maquettes / wireframes', 'Développer le frontend', 'Configurer l\'hébergement', 'Tests et mise en ligne'],
+      'candidature':['Adapter le CV', 'Rédiger la lettre de motivation', 'Soigner le profil LinkedIn', 'Envoyer la candidature', 'Préparer un entretien éventuel'],
+      'appren':     ['Trouver les ressources (cours, livres)', 'Planifier les sessions d\'apprentissage', 'Prendre des notes organisées', 'Pratiquer avec des exercices', 'Faire une rétrospective des acquis'],
+    };
+
+    let decomposeTaskIdx = null;
+    let decomposePendingSubs = [];
+
+    function openDecompose(taskIdx) {
+      const p = projects.find(x => x.id === activeProjectId);
+      const task = p.tasks[taskIdx];
+      decomposeTaskIdx = taskIdx;
+      decomposePendingSubs = [...(task.subtasks || []).map(s => s.text)];
+
+      document.getElementById('decomposeTaskName').textContent = `"${task.text}"`;
+      document.getElementById('decomposeInput').value = '';
+
+      // Template chips: find matching templates
+      const chips = document.getElementById('decomposeTemplateChips');
+      chips.innerHTML = '';
+      const lc = task.text.toLowerCase();
+      const matched = Object.entries(DECOMPOSE_TEMPLATES).filter(([key]) => lc.includes(key));
+      // Also show generic templates
+      const generic = [['voyage', DECOMPOSE_TEMPLATES['voyage']], ['présent', DECOMPOSE_TEMPLATES['présent']], ['événem', DECOMPOSE_TEMPLATES['événem']]];
+      const shown = matched.length > 0 ? matched : generic;
+      shown.forEach(([key, subs]) => {
+        const chip = document.createElement('button');
+        chip.className = 'template-chip';
+        chip.textContent = key === 'déménag' ? 'Déménagement' : key === 'voyage' ? 'Voyage' : key === 'présent' ? 'Présentation' : key === 'événem' ? 'Événement' : key === 'rapport' ? 'Rapport' : key === 'site' ? 'Site web' : key === 'candidature' ? 'Candidature' : key === 'appren' ? 'Apprentissage' : key;
+        chip.addEventListener('click', () => {
+          subs.forEach(s => { if (!decomposePendingSubs.includes(s)) decomposePendingSubs.push(s); });
+          renderDecomposeSubs();
+        });
+        chips.appendChild(chip);
+      });
+
+      renderDecomposeSubs();
+      document.getElementById('decomposeBackdrop').classList.add('open');
+      document.getElementById('decomposeSheet').classList.add('open');
+      setTimeout(() => document.getElementById('decomposeInput').focus(), 300);
+    }
+
+    function renderDecomposeSubs() {
+      const container = document.getElementById('decomposeSubs');
+      container.innerHTML = '';
+      decomposePendingSubs.forEach((text, i) => {
+        const row = document.createElement('div');
+        row.className = 'decompose-sub-row';
+        const s = document.createElement('span');
+        s.textContent = text;
+        const del = document.createElement('button');
+        del.textContent = '✕';
+        del.addEventListener('click', () => {
+          decomposePendingSubs.splice(i, 1);
+          renderDecomposeSubs();
+        });
+        row.append(s, del);
+        container.appendChild(row);
+      });
+    }
+
+    function decomposeAddSub() {
+      const inp = document.getElementById('decomposeInput');
+      const text = inp.value.trim();
+      if (!text) return;
+      decomposePendingSubs.push(text);
+      renderDecomposeSubs();
+      inp.value = '';
+      inp.focus();
+    }
+
+    function applyDecompose() {
+      if (decomposeTaskIdx === null) return;
+      const p = projects.find(x => x.id === activeProjectId);
+      const task = p.tasks[decomposeTaskIdx];
+      task.subtasks = decomposePendingSubs.map(text => ({ id: Date.now() + Math.random(), text, done: false }));
+      task.expanded = true;
+      task.done = false;
+      saveAll();
+      renderProjectTasks(p);
+      renderDetailProgress(p);
+      closeDecompose();
+    }
+
+    function closeDecompose() {
+      document.getElementById('decomposeBackdrop').classList.remove('open');
+      document.getElementById('decomposeSheet').classList.remove('open');
+      decomposeTaskIdx = null;
+      decomposePendingSubs = [];
+    }
+
+    document.getElementById('decomposeInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') decomposeAddSub();
+    });
 
     function deleteActiveProject() {
       if (activeProjectId === null) return;
