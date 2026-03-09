@@ -795,6 +795,33 @@
       opacity: 0.55;
     }
 
+    /* Drag & Drop */
+    .project-card[draggable="true"] { cursor: grab; }
+    .project-card[draggable="true"]:active { cursor: grabbing; }
+
+    .project-card.dragging {
+      opacity: 0.35;
+      transform: scale(0.97);
+      box-shadow: none;
+    }
+
+    .kanban-col.drag-over {
+      border-color: var(--accent);
+      background: rgba(10,132,255,0.06);
+    }
+
+    .kanban-col.drag-over .kanban-col-body {
+      border-radius: 0 0 20px 20px;
+    }
+
+    .kanban-drop-placeholder {
+      height: 72px;
+      border: 2px dashed var(--accent);
+      border-radius: 16px;
+      background: rgba(10,132,255,0.06);
+      animation: itemIn 0.15s ease;
+    }
+
     .project-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -1560,6 +1587,57 @@
     });
 
     // ---- PROJETS ----
+    let draggedProjectId = null;
+
+    function makeProjectCard(p) {
+      const done = p.tasks.filter(t => t.done).length;
+      const total = p.tasks.length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.draggable = true;
+      card.dataset.id = p.id;
+      card.innerHTML = `
+        <div class="project-card-top" style="background:${p.color}"></div>
+        <div class="project-card-body">
+          <div class="project-card-header">
+            <span class="project-card-name">${escapeHtml(p.name)}</span>
+          </div>
+          ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : ''}
+          <div class="project-card-footer">
+            <div class="project-progress-outer">
+              <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
+            </div>
+            <span class="project-task-count">${done}/${total}</span>
+          </div>
+        </div>
+      `;
+
+      // Clic → ouvre le projet (seulement si pas un drag)
+      card.addEventListener('click', () => {
+        if (!card.classList.contains('dragging')) openProject(p.id);
+      });
+
+      // Drag
+      card.addEventListener('dragstart', e => {
+        draggedProjectId = p.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', p.id);
+        setTimeout(() => card.classList.add('dragging'), 0);
+      });
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        draggedProjectId = null;
+        document.querySelectorAll('.kanban-col').forEach(c => {
+          c.classList.remove('drag-over');
+          const ph = c.querySelector('.kanban-drop-placeholder');
+          if (ph) ph.remove();
+        });
+      });
+
+      return card;
+    }
+
     function renderProjects() {
       const board = document.getElementById('kanbanBoard');
       board.innerHTML = '';
@@ -1570,8 +1648,8 @@
 
         const col = document.createElement('div');
         col.className = 'kanban-col';
+        col.dataset.status = statusKey;
 
-        // Header
         col.innerHTML = `
           <div class="kanban-col-header">
             <div class="kanban-col-dot" style="background:${cfg.color}"></div>
@@ -1586,31 +1664,46 @@
         if (colProjects.length === 0) {
           body.innerHTML = `<div class="kanban-empty">Aucun projet</div>`;
         } else {
-          colProjects.forEach(p => {
-            const done = p.tasks.filter(t => t.done).length;
-            const total = p.tasks.length;
-            const pct = total ? Math.round((done / total) * 100) : 0;
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.onclick = () => openProject(p.id);
-            card.innerHTML = `
-              <div class="project-card-top" style="background:${p.color}"></div>
-              <div class="project-card-body">
-                <div class="project-card-header">
-                  <span class="project-card-name">${escapeHtml(p.name)}</span>
-                </div>
-                ${p.description ? `<p class="project-card-desc">${escapeHtml(p.description)}</p>` : ''}
-                <div class="project-card-footer">
-                  <div class="project-progress-outer">
-                    <div class="project-progress-fill" style="width:${pct}%;background:${p.color}"></div>
-                  </div>
-                  <span class="project-task-count">${done}/${total}</span>
-                </div>
-              </div>
-            `;
-            body.appendChild(card);
-          });
+          colProjects.forEach(p => body.appendChild(makeProjectCard(p)));
         }
+
+        // Drop zone events (sur toute la colonne)
+        col.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!col.classList.contains('drag-over')) {
+            col.classList.add('drag-over');
+            // Placeholder
+            if (!col.querySelector('.kanban-drop-placeholder')) {
+              const ph = document.createElement('div');
+              ph.className = 'kanban-drop-placeholder';
+              body.appendChild(ph);
+              const empty = body.querySelector('.kanban-empty');
+              if (empty) empty.style.display = 'none';
+            }
+          }
+        });
+
+        col.addEventListener('dragleave', e => {
+          if (!col.contains(e.relatedTarget)) {
+            col.classList.remove('drag-over');
+            const ph = col.querySelector('.kanban-drop-placeholder');
+            if (ph) ph.remove();
+            const empty = col.querySelector('.kanban-empty');
+            if (empty) empty.style.display = '';
+          }
+        });
+
+        col.addEventListener('drop', e => {
+          e.preventDefault();
+          const id = parseInt(e.dataTransfer.getData('text/plain'));
+          const proj = projects.find(x => x.id === id);
+          if (proj && proj.status !== statusKey) {
+            proj.status = statusKey;
+            saveAll();
+          }
+          renderProjects();
+        });
 
         col.appendChild(body);
         board.appendChild(col);
