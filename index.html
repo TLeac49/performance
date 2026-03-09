@@ -577,17 +577,6 @@
       color: #fff;
     }
 
-    /* RAPPELS PAGE LAYOUT */
-    .rappels-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 640px) {
-      .rappels-grid { grid-template-columns: 1fr; }
-    }
-
     /* SECTION TITLE */
     .section-title {
       font-size: 0.72rem;
@@ -598,30 +587,292 @@
       margin-bottom: 14px;
     }
 
-    /* CATEGORY TAG (in list) */
-    .cat-item {
+    /* LISTS SECTION */
+    .lists-section { margin-top: 28px; }
+
+    .cat-rows-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.18s;
+      user-select: none;
+    }
+
+    .cat-row:last-of-type { border-bottom: none; }
+    .cat-row:hover { background: var(--surface-hover); }
+
+    .cat-row-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      letter-spacing: 0;
+    }
+
+    .cat-row-name {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .cat-row-right {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 12px;
-      background: var(--item-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      animation: itemIn 0.25s ease;
     }
 
-    .cat-color-dot {
-      width: 10px;
-      height: 10px;
+    .cat-row-count {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      min-width: 12px;
+      text-align: right;
+    }
+
+    .cat-row-chevron {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      transition: transform 0.22s ease;
+      line-height: 1;
+    }
+
+    .cat-row.expanded .cat-row-chevron { transform: rotate(90deg); }
+
+    .cat-row-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.32s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cat-row-body:last-child { border-bottom: none; }
+    .cat-row-body.open { max-height: 800px; }
+
+    .cat-row-reminders {
+      padding: 8px 18px 10px 70px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cat-row-add-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0 2px;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+
+    .cat-row-add-btn:hover { opacity: 0.7; }
+
+    .cat-del-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-family: inherit;
+      font-size: 0.76rem;
+      cursor: pointer;
+      padding: 2px 0 10px;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+
+    .cat-del-btn:hover { opacity: 0.7; }
+
+    .add-list-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      color: var(--accent);
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 2px;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+
+    .add-list-btn:hover { opacity: 0.7; }
+
+    .add-list-icon {
+      width: 26px;
+      height: 26px;
+      background: var(--accent);
       border-radius: 50%;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      line-height: 1;
       flex-shrink: 0;
     }
 
-    .cat-name {
-      flex: 1;
-      font-size: 0.875rem;
-      font-weight: 500;
+    /* BOTTOM SHEET (ajout rappel) */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
     }
+
+    .sheet-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 401;
+      background: #1c1c1e;
+      border-radius: 24px 24px 0 0;
+      padding: 14px 24px 44px;
+      box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+      transform: translateY(102%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    [data-theme="light"] .bottom-sheet { background: #f2f2f7; }
+
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+
+    [data-theme="light"] .sheet-handle { background: rgba(0,0,0,0.13); }
+
+    .sheet-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 22px;
+      text-align: center;
+    }
+
+    .sheet-input-block {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .sheet-input-block input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 15px 16px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .sheet-input-block input::placeholder { color: var(--text-secondary); }
+
+    .sheet-input-block input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.5);
+      cursor: pointer;
+    }
+
+    .sheet-cat-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin: 4px 0 10px;
+    }
+
+    .sheet-cat-picker {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .sheet-cat-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 13px;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sheet-cat-chip.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .sheet-actions { display: flex; gap: 10px; }
+
+    .sheet-btn {
+      flex: 1;
+      padding: 15px;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+
+    .sheet-btn:active { transform: scale(0.97); }
+    .sheet-btn-cancel { background: var(--item-bg); color: var(--text-secondary); }
+    .sheet-btn-add { background: var(--accent); color: #fff; }
+    .sheet-btn-add:hover { background: var(--accent-hover); }
 
     /* FAB */
     .fab {
@@ -814,54 +1065,45 @@
       </ul>
     </div>
 
-    <div class="rappels-grid">
-      <!-- TOUS LES RAPPELS -->
-      <div class="panel" style="grid-column: 1 / -1;">
-        <div class="panel-header">
-          <div class="panel-icon orange">◎</div>
-          <span class="panel-title">Tous les rappels</span>
-          <span class="panel-count" id="reminderCount">0</span>
-        </div>
-
-        <!-- Filtres catégories -->
-        <div class="cat-chips" id="catFilterChips"></div>
-
-        <!-- Formulaire d'ajout -->
-        <div class="input-group">
-          <input type="text" id="reminderTextFull" placeholder="Nouveau rappel…" />
-        </div>
-        <div class="input-group">
-          <input type="datetime-local" id="reminderTimeFull" style="flex:2" />
-          <select id="reminderCatSelect"></select>
-          <button class="btn-add" onclick="addReminderFull()">+</button>
-        </div>
-
-        <ul class="item-list no-max" id="reminderListFull">
-          <li class="empty">Aucun rappel pour l'instant.</li>
-        </ul>
-      </div>
-
-      <!-- GESTION DES CATÉGORIES -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-icon green">🏷</div>
-          <span class="panel-title">Catégories</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px" id="catList"></div>
-      </div>
+    <!-- MES LISTES -->
+    <div class="lists-section">
+      <p class="section-title">Mes listes</p>
+      <div class="cat-rows-container" id="catRowsContainer"></div>
+      <button class="add-list-btn" onclick="openCatModal()">
+        <span class="add-list-icon">+</span> Nouvelle liste
+      </button>
     </div>
   </div>
 
-  <!-- FAB catégorie (page Rappels uniquement) -->
-  <button class="fab" id="fab" onclick="openCatModal()" title="Nouvelle catégorie" style="display:none">+</button>
+  <!-- FAB (page Rappels uniquement) -->
+  <button class="fab" id="fab" onclick="openReminderModal()" title="Nouveau rappel" style="display:none">+</button>
 
   <!-- Modale ajout catégorie -->
   <div class="modal-backdrop" id="catModalBackdrop" onclick="closeCatModal()"></div>
   <div class="modal-card" id="catModal">
-    <p class="modal-title">Nouvelle catégorie</p>
+    <p class="modal-title">Nouvelle liste</p>
     <div class="input-group" style="margin-bottom:0">
-      <input type="text" id="catInput" placeholder="Nom de la catégorie…" />
+      <input type="text" id="catInput" placeholder="Nom de la liste…" />
       <button class="btn-add" onclick="addCategory()">+</button>
+    </div>
+  </div>
+
+  <!-- Bottom sheet : ajout rappel -->
+  <div class="sheet-backdrop" id="reminderSheetBackdrop" onclick="closeReminderModal()"></div>
+  <div class="bottom-sheet" id="reminderSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouveau rappel</div>
+    <div class="sheet-input-block">
+      <input type="text" id="sheetReminderText" placeholder="Titre du rappel…" />
+    </div>
+    <div class="sheet-input-block">
+      <input type="datetime-local" id="sheetReminderTime" />
+    </div>
+    <p class="sheet-cat-label">Liste</p>
+    <div class="sheet-cat-picker" id="sheetCatPicker"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeReminderModal()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" onclick="addReminderFromModal()">Ajouter</button>
     </div>
   </div>
 
@@ -869,10 +1111,11 @@
 
   <script>
     // ---- DATA ----
-    let tasks     = JSON.parse(localStorage.getItem('tasks')      || '[]');
-    let reminders = JSON.parse(localStorage.getItem('reminders')  || '[]');
-    let categories= JSON.parse(localStorage.getItem('categories') || JSON.stringify(['Travail','Personnel','Urgent']));
-    let catFilter = 'all';
+    let tasks      = JSON.parse(localStorage.getItem('tasks')      || '[]');
+    let reminders  = JSON.parse(localStorage.getItem('reminders')  || '[]');
+    let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(['Travail','Personnel','Urgent']));
+    let expandedCats    = new Set();
+    let sheetSelectedCat = '';
 
     const CAT_COLORS = ['#0A84FF','#BF5AF2','#FF453A','#30D158','#FF9F0A','#64D2FF','#FF6961','#5E5CE6'];
 
@@ -935,50 +1178,71 @@
     });
 
     // ---- CATÉGORIES ----
-    function renderCategories() {
-      // Sélect du formulaire de rappel (page Rappels)
-      const sel = document.getElementById('reminderCatSelect');
-      sel.innerHTML = '<option value="">— Catégorie —</option>';
-      categories.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        sel.appendChild(opt);
-      });
-
-      // Liste de gestion des catégories
-      const catList = document.getElementById('catList');
-      catList.innerHTML = '';
+    function renderCatRows() {
+      const container = document.getElementById('catRowsContainer');
+      container.innerHTML = '';
       if (categories.length === 0) {
-        catList.innerHTML = '<div class="empty" style="padding:16px 0">Aucune catégorie.</div>';
+        container.innerHTML = '<div class="empty">Créez votre première liste.</div>';
+        return;
       }
-      categories.forEach((c, i) => {
-        const div = document.createElement('div');
-        div.className = 'cat-item';
-        div.innerHTML = `
-          <div class="cat-color-dot" style="background:${catColor(c)}"></div>
-          <span class="cat-name">${escapeHtml(c)}</span>
-          <button class="btn-delete" onclick="deleteCategory(${i})">✕</button>
+      categories.forEach((cat, catIdx) => {
+        const catReminders = reminders.map((r, i) => ({...r, _idx: i})).filter(r => r.category === cat);
+        const isExpanded = expandedCats.has(cat);
+
+        // Row header
+        const row = document.createElement('div');
+        row.className = 'cat-row' + (isExpanded ? ' expanded' : '');
+        row.innerHTML = `
+          <div class="cat-row-icon" style="background:${catColor(cat)}">${escapeHtml(cat[0].toUpperCase())}</div>
+          <span class="cat-row-name">${escapeHtml(cat)}</span>
+          <div class="cat-row-right">
+            <span class="cat-row-count">${catReminders.length}</span>
+            <span class="cat-row-chevron">›</span>
+          </div>
         `;
-        catList.appendChild(div);
-      });
+        row.onclick = () => toggleCatExpand(cat);
+        container.appendChild(row);
 
-      // Chips de filtre
-      const chips = document.getElementById('catFilterChips');
-      chips.innerHTML = '';
-      const all = document.createElement('button');
-      all.className = 'cat-chip' + (catFilter === 'all' ? ' active' : '');
-      all.textContent = 'Tous';
-      all.onclick = () => { catFilter = 'all'; renderCategories(); renderRemindersFull(); };
-      chips.appendChild(all);
+        // Body (expandable)
+        const body = document.createElement('div');
+        body.className = 'cat-row-body' + (isExpanded ? ' open' : '');
 
-      categories.forEach(c => {
-        const chip = document.createElement('button');
-        chip.className = 'cat-chip' + (catFilter === c ? ' active' : '');
-        chip.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${catColor(c)};margin-right:5px;vertical-align:middle"></span>${escapeHtml(c)}`;
-        chip.onclick = () => { catFilter = c; renderCategories(); renderRemindersFull(); };
-        chips.appendChild(chip);
+        const remsDiv = document.createElement('div');
+        remsDiv.className = 'cat-row-reminders';
+
+        if (catReminders.length === 0) {
+          remsDiv.innerHTML = '<div class="empty" style="padding:6px 0 4px;text-align:left;font-size:0.8rem">Aucun rappel dans cette liste.</div>';
+        } else {
+          catReminders.forEach(r => {
+            const li = document.createElement('li');
+            li.className = 'reminder-item' + (r.triggered ? ' triggered' : '');
+            li.style.listStyle = 'none';
+            li.innerHTML = reminderItemHTML(r, r._idx, true);
+            remsDiv.appendChild(li);
+          });
+        }
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'cat-row-add-btn';
+        addBtn.innerHTML = '<span style="font-size:1.1rem;line-height:1">+</span> Ajouter un rappel';
+        addBtn.onclick = (e) => { e.stopPropagation(); openReminderModal(cat); };
+        remsDiv.appendChild(addBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'cat-del-btn';
+        delBtn.textContent = 'Supprimer cette liste';
+        delBtn.onclick = (e) => { e.stopPropagation(); deleteCategory(catIdx); };
+        remsDiv.appendChild(delBtn);
+
+        body.appendChild(remsDiv);
+        container.appendChild(body);
       });
+    }
+
+    function toggleCatExpand(cat) {
+      if (expandedCats.has(cat)) expandedCats.delete(cat);
+      else expandedCats.add(cat);
+      renderCatRows();
     }
 
     function openCatModal() {
@@ -997,7 +1261,7 @@
       const name = input.value.trim();
       if (!name || categories.includes(name)) return;
       categories.push(name);
-      saveAll(); renderCategories(); renderRemindersFull();
+      saveAll(); renderCatRows();
       input.value = '';
       closeCatModal();
     }
@@ -1006,13 +1270,61 @@
       const name = categories[i];
       categories.splice(i, 1);
       reminders.forEach(r => { if (r.category === name) r.category = ''; });
-      if (catFilter === name) catFilter = 'all';
-      saveAll(); renderCategories(); renderRemindersFull(); renderRemindersHome(); renderToday();
+      expandedCats.delete(name);
+      saveAll(); renderCatRows(); renderRemindersHome(); renderToday();
     }
 
     document.getElementById('catInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') addCategory();
       if (e.key === 'Escape') closeCatModal();
+    });
+
+    // ---- BOTTOM SHEET RAPPEL ----
+    function openReminderModal(preselectedCat) {
+      sheetSelectedCat = preselectedCat || '';
+      renderSheetCatPicker();
+      document.getElementById('reminderSheetBackdrop').classList.add('open');
+      document.getElementById('reminderSheet').classList.add('open');
+      setTimeout(() => document.getElementById('sheetReminderText').focus(), 250);
+    }
+
+    function closeReminderModal() {
+      document.getElementById('reminderSheetBackdrop').classList.remove('open');
+      document.getElementById('reminderSheet').classList.remove('open');
+    }
+
+    function renderSheetCatPicker() {
+      const picker = document.getElementById('sheetCatPicker');
+      picker.innerHTML = '';
+      const none = document.createElement('button');
+      none.className = 'sheet-cat-chip' + (sheetSelectedCat === '' ? ' selected' : '');
+      none.textContent = 'Aucune';
+      none.onclick = () => { sheetSelectedCat = ''; renderSheetCatPicker(); };
+      picker.appendChild(none);
+      categories.forEach(c => {
+        const chip = document.createElement('button');
+        chip.className = 'sheet-cat-chip' + (sheetSelectedCat === c ? ' selected' : '');
+        chip.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${catColor(c)};display:inline-block;flex-shrink:0"></span>${escapeHtml(c)}`;
+        chip.onclick = () => { sheetSelectedCat = c; renderSheetCatPicker(); };
+        picker.appendChild(chip);
+      });
+    }
+
+    function addReminderFromModal() {
+      const text = document.getElementById('sheetReminderText').value.trim();
+      const time = document.getElementById('sheetReminderTime').value;
+      if (!text || !time) return;
+      reminders.push({ text, time, triggered: false, category: sheetSelectedCat });
+      if (sheetSelectedCat) expandedCats.add(sheetSelectedCat);
+      saveAll(); renderRemindersHome(); renderCatRows(); renderToday();
+      document.getElementById('sheetReminderText').value = '';
+      document.getElementById('sheetReminderTime').value = '';
+      sheetSelectedCat = '';
+      closeReminderModal();
+    }
+
+    document.getElementById('sheetReminderText').addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeReminderModal();
     });
 
     // ---- RAPPELS ----
@@ -1051,27 +1363,6 @@
       });
     }
 
-    function renderRemindersFull() {
-      const list = document.getElementById('reminderListFull');
-      const count = document.getElementById('reminderCount');
-      list.innerHTML = '';
-      const filtered = reminders.filter((r, i) => {
-        r._idx = i;
-        return catFilter === 'all' || r.category === catFilter;
-      });
-      count.textContent = reminders.length;
-      if (filtered.length === 0) {
-        list.innerHTML = '<li class="empty">Aucun rappel' + (catFilter !== 'all' ? ' dans cette catégorie' : '') + '.</li>';
-        return;
-      }
-      filtered.forEach(r => {
-        const li = document.createElement('li');
-        li.className = 'reminder-item' + (r.triggered ? ' triggered' : '');
-        li.id = 'rfull-' + r._idx;
-        li.innerHTML = reminderItemHTML(r, r._idx, true);
-        list.appendChild(li);
-      });
-    }
 
     function renderToday() {
       const list = document.getElementById('todayList');
@@ -1102,29 +1393,14 @@
       const time = document.getElementById('reminderTime').value;
       if (!text || !time) return;
       reminders.push({ text, time, triggered: false, category: '' });
-      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
+      saveAll(); renderRemindersHome(); renderCatRows(); renderToday();
       document.getElementById('reminderText').value = '';
       document.getElementById('reminderTime').value = '';
     }
 
-    function addReminderFull() {
-      const text = document.getElementById('reminderTextFull').value.trim();
-      const time = document.getElementById('reminderTimeFull').value;
-      const cat  = document.getElementById('reminderCatSelect').value;
-      if (!text || !time) return;
-      reminders.push({ text, time, triggered: false, category: cat });
-      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
-      document.getElementById('reminderTextFull').value = '';
-      document.getElementById('reminderTimeFull').value = '';
-    }
-
-    document.getElementById('reminderTextFull').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addReminderFull();
-    });
-
     function deleteReminder(i) {
       reminders.splice(i, 1);
-      saveAll(); renderRemindersHome(); renderRemindersFull(); renderToday();
+      saveAll(); renderRemindersHome(); renderCatRows(); renderToday();
     }
 
     function checkReminders() {
@@ -1144,7 +1420,7 @@
           }
         }
       });
-      if (changed) { saveAll(); renderToday(); }
+      if (changed) { saveAll(); renderToday(); renderCatRows(); }
     }
 
     // ---- NAV / PAGES ----
@@ -1155,7 +1431,8 @@
       document.getElementById('tab-' + name).classList.add('active');
       document.getElementById('fab').style.display = name === 'rappels' ? 'flex' : 'none';
       closeCatModal();
-      if (name === 'rappels') { renderToday(); renderRemindersFull(); renderCategories(); }
+      closeReminderModal();
+      if (name === 'rappels') { renderToday(); renderCatRows(); }
     }
 
     // ---- THEME ----
@@ -1202,7 +1479,6 @@
 
     renderTasks();
     renderRemindersHome();
-    renderCategories();
     setInterval(checkReminders, 10000);
     checkReminders();
   </script>
