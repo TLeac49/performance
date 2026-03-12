@@ -1971,6 +1971,7 @@
       <button class="nav-link" id="tab-rappels" onclick="showPage('rappels')">Rappels</button>
       <button class="nav-link" id="tab-projets" onclick="showPage('projets')">Projets</button>
       <button class="nav-link" id="tab-domaines" onclick="showPage('domaines')">Domaines</button>
+      <button class="nav-link" id="tab-finances" onclick="showPage('finances')">Finances</button>
     </div>
     <div class="nav-right">
       <span class="user-email-display" id="userEmailDisplay"></span>
@@ -2194,6 +2195,55 @@
         <button class="btn-add" onclick="addDomainProject()">+</button>
       </div>
       <div class="domain-proj-list" id="domainProjectList"></div>
+    </div>
+  </div>
+
+  <!-- PAGE FINANCES -->
+  <div class="page" id="page-finances">
+    <div class="hero" style="margin-bottom:36px">
+      <h1>Finances</h1>
+      <p>Suivez vos revenus, dépenses et votre budget en un coup d'œil.</p>
+    </div>
+
+    <!-- RÉSUMÉ -->
+    <div class="stats-panel">
+      <div class="stat-card">
+        <span class="stat-value" id="finSolde">—</span>
+        <span class="stat-label">Solde du mois</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="finRevenus">—</span>
+        <span class="stat-label">Revenus</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="finDepenses">—</span>
+        <span class="stat-label">Dépenses</span>
+      </div>
+    </div>
+
+    <!-- SAISIE TRANSACTION -->
+    <div class="panel" style="max-width:660px;margin:0 auto 32px">
+      <div class="panel-header">
+        <span class="panel-title">Nouvelle transaction</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="finDesc" placeholder="Description…" style="flex:2;min-width:140px" />
+        <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" style="flex:1;min-width:100px" />
+        <select id="finType" style="flex:1;min-width:110px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
+          <option value="depense">Dépense</option>
+          <option value="revenu">Revenu</option>
+        </select>
+        <input type="date" id="finDate" style="flex:1;min-width:130px" />
+        <button class="btn-add" onclick="addTransaction()" style="padding:10px 20px">+</button>
+      </div>
+    </div>
+
+    <!-- LISTE TRANSACTIONS -->
+    <div class="panel" style="max-width:660px;margin:0 auto">
+      <div class="panel-header">
+        <span class="panel-title">Transactions</span>
+      </div>
+      <ul class="item-list no-max" id="finList"></ul>
     </div>
   </div>
 
@@ -3356,6 +3406,9 @@
         fab.onclick = openDomainModal;
         fab.title = 'Nouveau domaine';
         renderDomains();
+      } else if (name === 'finances') {
+        fab.style.display = 'none';
+        renderFinances();
       } else {
         fab.style.display = 'none';
       }
@@ -3371,6 +3424,68 @@
         if (activeProjectId !== null) closeProject();
         else renderProjects();
       }
+    }
+
+    // ---- FINANCES ----
+    let transactions = JSON.parse(localStorage.getItem('fin_transactions') || '[]');
+
+    function saveTransactions() {
+      localStorage.setItem('fin_transactions', JSON.stringify(transactions));
+    }
+
+    function addTransaction() {
+      const desc = document.getElementById('finDesc').value.trim();
+      const montant = parseFloat(document.getElementById('finMontant').value);
+      const type = document.getElementById('finType').value;
+      const date = document.getElementById('finDate').value || new Date().toISOString().slice(0, 10);
+      if (!desc || isNaN(montant) || montant <= 0) return;
+      transactions.unshift({ id: Date.now(), desc, montant, type, date });
+      saveTransactions();
+      document.getElementById('finDesc').value = '';
+      document.getElementById('finMontant').value = '';
+      document.getElementById('finDate').value = '';
+      renderFinances();
+    }
+
+    function deleteTransaction(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      saveTransactions();
+      renderFinances();
+    }
+
+    function renderFinances() {
+      const now = new Date();
+      const month = now.getMonth();
+      const year = now.getFullYear();
+      const monthTx = transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+      });
+      const revenus = monthTx.filter(t => t.type === 'revenu').reduce((s, t) => s + t.montant, 0);
+      const depenses = monthTx.filter(t => t.type === 'depense').reduce((s, t) => s + t.montant, 0);
+      const solde = revenus - depenses;
+      const fmt = v => (v >= 0 ? '+' : '') + v.toFixed(2) + ' €';
+      document.getElementById('finSolde').textContent = fmt(solde);
+      document.getElementById('finSolde').style.color = solde >= 0 ? 'var(--accent)' : '#ff6b6b';
+      document.getElementById('finRevenus').textContent = '+' + revenus.toFixed(2) + ' €';
+      document.getElementById('finRevenus').style.color = 'var(--accent)';
+      document.getElementById('finDepenses').textContent = '-' + depenses.toFixed(2) + ' €';
+      document.getElementById('finDepenses').style.color = '#ff6b6b';
+      const list = document.getElementById('finList');
+      if (!transactions.length) {
+        list.innerHTML = '<li style="color:var(--text-secondary);text-align:center;padding:24px">Aucune transaction</li>';
+        return;
+      }
+      list.innerHTML = transactions.map(t => `
+        <li style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="flex:1;font-size:15px">${t.desc}</span>
+          <span style="font-size:13px;color:var(--text-secondary)">${t.date}</span>
+          <span style="font-weight:600;color:${t.type === 'revenu' ? 'var(--accent)' : '#ff6b6b'};min-width:80px;text-align:right">
+            ${t.type === 'revenu' ? '+' : '-'}${t.montant.toFixed(2)} €
+          </span>
+          <button onclick="deleteTransaction(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px;padding:0 4px" title="Supprimer">×</button>
+        </li>
+      `).join('');
     }
 
     // ---- THEME ----
