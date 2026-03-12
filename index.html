@@ -2200,99 +2200,127 @@
 
   <!-- PAGE FINANCES -->
   <div class="page" id="page-finances">
-    <div class="hero" style="margin-bottom:28px">
-      <h1>Finances</h1>
-      <p>Suivez vos revenus, dépenses et votre budget en un coup d'œil.</p>
-    </div>
 
-    <!-- SÉLECTEUR DE MOIS -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:28px">
-      <button onclick="finPrevMonth()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">‹</button>
-      <span id="finMonthLabel" style="font-size:18px;font-weight:600;min-width:180px;text-align:center;color:var(--text-primary)"></span>
-      <button onclick="finNextMonth()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">›</button>
-    </div>
+    <!-- VUE PRINCIPALE -->
+    <div id="fin-main">
+      <div class="hero" style="margin-bottom:28px">
+        <h1>Finances</h1>
+        <p>Suivez vos revenus, dépenses et votre budget en un coup d'œil.</p>
+      </div>
 
-    <!-- RÉSUMÉ -->
-    <div class="stats-panel">
-      <div class="stat-card">
-        <span class="stat-value" id="finSolde">—</span>
-        <span class="stat-label">Solde du mois</span>
+      <!-- SÉLECTEUR DE MOIS -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:28px">
+        <button onclick="finPrevMonth()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">‹</button>
+        <span id="finMonthLabel" style="font-size:18px;font-weight:600;min-width:180px;text-align:center;color:var(--text-primary)"></span>
+        <button onclick="finNextMonth()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">›</button>
       </div>
-      <div class="stat-card">
-        <span class="stat-value" id="finRevenus">—</span>
-        <span class="stat-label">Revenus</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-value" id="finDepenses">—</span>
-        <span class="stat-label">Dépenses</span>
-      </div>
-    </div>
 
-    <!-- BUDGETS PAR CATÉGORIE -->
-    <div class="panel" id="finBudgetsPanel" style="max-width:660px;margin:0 auto 32px;display:none">
-      <div class="panel-header">
-        <span class="panel-title">Budgets dépenses</span>
-      </div>
-      <div id="finBudgetsList"></div>
-    </div>
-
-    <!-- SAISIE TRANSACTION -->
-    <div class="panel" style="max-width:660px;margin:0 auto 32px">
-      <div class="panel-header">
-        <span class="panel-title">Nouvelle transaction</span>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="finDesc" placeholder="Description…" style="flex:2;min-width:140px" />
-        <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" style="flex:1;min-width:90px" />
-        <select id="finType" onchange="finUpdateCatSelect()" style="flex:1;min-width:110px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
-          <option value="depense">Dépense</option>
-          <option value="revenu">Revenu</option>
-        </select>
-        <select id="finCat" style="flex:1;min-width:120px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
-          <option value="">— Catégorie —</option>
-        </select>
-        <input type="date" id="finDate" style="flex:1;min-width:130px" />
-        <button class="btn-add" onclick="addTransaction()" style="padding:10px 20px">+</button>
-      </div>
-    </div>
-
-    <!-- LISTE TRANSACTIONS -->
-    <div class="panel" style="max-width:660px;margin:0 auto 32px">
-      <div class="panel-header">
-        <span class="panel-title">Transactions</span>
-      </div>
-      <ul class="item-list no-max" id="finList"></ul>
-    </div>
-
-    <!-- CATÉGORIES -->
-    <div style="display:flex;gap:24px;flex-wrap:wrap;max-width:660px;margin:0 auto 48px">
-
-      <!-- Catégories revenus -->
-      <div class="panel" style="flex:1;min-width:260px">
-        <div class="panel-header">
-          <span class="panel-title">Catégories revenus</span>
+      <!-- RÉSUMÉ -->
+      <div class="stats-panel">
+        <div class="stat-card">
+          <span class="stat-value" id="finSolde">—</span>
+          <span class="stat-label">Solde du mois</span>
         </div>
-        <div class="input-group" style="margin-bottom:12px">
+        <div class="stat-card">
+          <span class="stat-value" id="finRevenus">—</span>
+          <span class="stat-label">Revenus</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="finDepenses">—</span>
+          <span class="stat-label">Dépenses</span>
+        </div>
+      </div>
+
+      <!-- BUDGETS PAR CATÉGORIE -->
+      <div class="panel" id="finBudgetsPanel" style="max-width:660px;margin:0 auto 32px;display:none">
+        <div class="panel-header">
+          <span class="panel-title">Budgets dépenses</span>
+        </div>
+        <div id="finBudgetsList"></div>
+      </div>
+
+      <!-- SAISIE TRANSACTION -->
+      <div class="panel" style="max-width:660px;margin:0 auto 32px">
+        <div class="panel-header">
+          <span class="panel-title">Nouvelle transaction</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="finDesc" placeholder="Description…" style="flex:2;min-width:140px" />
+          <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" style="flex:1;min-width:90px" />
+          <select id="finType" onchange="finUpdateCatSelect()" style="flex:1;min-width:110px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
+            <option value="depense">Dépense</option>
+            <option value="revenu">Revenu</option>
+          </select>
+          <select id="finCat" style="flex:1;min-width:120px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
+            <option value="">— Catégorie —</option>
+          </select>
+          <input type="date" id="finDate" style="flex:1;min-width:130px" />
+          <button class="btn-add" onclick="addTransaction()" style="padding:10px 20px">+</button>
+        </div>
+      </div>
+
+      <!-- LISTE TRANSACTIONS -->
+      <div class="panel" style="max-width:660px;margin:0 auto 32px">
+        <div class="panel-header">
+          <span class="panel-title">Transactions</span>
+        </div>
+        <ul class="item-list no-max" id="finList"></ul>
+      </div>
+
+      <!-- BOUTONS CATÉGORIES -->
+      <div style="display:flex;gap:16px;max-width:660px;margin:0 auto 48px">
+        <button onclick="finShowCatView('revenu')" style="flex:1;padding:14px 20px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:15px;font-weight:500;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between">
+          <span>Catégories revenus</span>
+          <span style="color:var(--text-secondary);font-size:18px">›</span>
+        </button>
+        <button onclick="finShowCatView('depense')" style="flex:1;padding:14px 20px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:15px;font-weight:500;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between">
+          <span>Catégories dépenses</span>
+          <span style="color:var(--text-secondary);font-size:18px">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- VUE CATÉGORIES REVENUS -->
+    <div id="fin-cat-rev" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="finBackToMain()">
+          <span>‹</span> Finances
+        </button>
+      </div>
+      <div class="hero" style="margin-bottom:28px">
+        <h1>Catégories revenus</h1>
+        <p>Organisez vos sources de revenus.</p>
+      </div>
+      <div class="panel" style="max-width:500px;margin:0 auto">
+        <div class="input-group" style="margin-bottom:16px">
           <input type="text" id="finCatRevNom" placeholder="Nouvelle catégorie…" />
           <button class="btn-add" onclick="addFinCategory('revenu')">+</button>
         </div>
         <ul class="item-list no-max" id="finCatRevList"></ul>
       </div>
+    </div>
 
-      <!-- Catégories dépenses -->
-      <div class="panel" style="flex:1;min-width:260px">
-        <div class="panel-header">
-          <span class="panel-title">Catégories dépenses</span>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-          <input type="text" id="finCatDepNom" placeholder="Catégorie…" style="flex:2;min-width:110px" />
-          <input type="number" id="finCatDepBudget" placeholder="Budget €" step="0.01" style="flex:1;min-width:80px" />
+    <!-- VUE CATÉGORIES DÉPENSES -->
+    <div id="fin-cat-dep" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="finBackToMain()">
+          <span>‹</span> Finances
+        </button>
+      </div>
+      <div class="hero" style="margin-bottom:28px">
+        <h1>Catégories dépenses</h1>
+        <p>Définissez vos postes de dépenses et leurs budgets mensuels.</p>
+      </div>
+      <div class="panel" style="max-width:500px;margin:0 auto">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <input type="text" id="finCatDepNom" placeholder="Catégorie…" style="flex:2;min-width:120px" />
+          <input type="number" id="finCatDepBudget" placeholder="Budget €" step="0.01" style="flex:1;min-width:90px" />
           <button class="btn-add" onclick="addFinCategory('depense')">+</button>
         </div>
         <ul class="item-list no-max" id="finCatDepList"></ul>
       </div>
-
     </div>
+
   </div>
 
   <!-- Modale création domaine -->
@@ -3456,6 +3484,7 @@
         renderDomains();
       } else if (name === 'finances') {
         fab.style.display = 'none';
+        finBackToMain();
         finUpdateCatSelect();
         renderFinances();
       } else {
@@ -3499,6 +3528,18 @@
       finViewMonth++;
       if (finViewMonth > 11) { finViewMonth = 0; finViewYear++; }
       renderFinances();
+    }
+
+    function finShowCatView(type) {
+      document.getElementById('fin-main').style.display = 'none';
+      document.getElementById('fin-cat-rev').style.display = type === 'revenu' ? '' : 'none';
+      document.getElementById('fin-cat-dep').style.display = type === 'depense' ? '' : 'none';
+      renderFinCatLists();
+    }
+    function finBackToMain() {
+      document.getElementById('fin-main').style.display = '';
+      document.getElementById('fin-cat-rev').style.display = 'none';
+      document.getElementById('fin-cat-dep').style.display = 'none';
     }
 
     function finUpdateCatSelect() {
