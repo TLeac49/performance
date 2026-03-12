@@ -1301,6 +1301,18 @@
 
     .sheet-input-block input::placeholder { color: var(--text-secondary); }
 
+    .sheet-input-block select {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 15px 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      cursor: pointer;
+    }
+
     .sheet-input-block input[type="datetime-local"]::-webkit-calendar-picker-indicator {
       filter: invert(0.5);
       cursor: pointer;
@@ -2231,33 +2243,8 @@
         </div>
       </div>
 
-      <!-- BUDGETS PAR CATÉGORIE -->
-      <div class="panel" id="finBudgetsPanel" style="max-width:660px;margin:0 auto 32px;display:none">
-        <div class="panel-header">
-          <span class="panel-title">Budgets dépenses</span>
-        </div>
-        <div id="finBudgetsList"></div>
-      </div>
-
-      <!-- SAISIE TRANSACTION -->
-      <div class="panel" style="max-width:660px;margin:0 auto 32px">
-        <div class="panel-header">
-          <span class="panel-title">Nouvelle transaction</span>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <input type="text" id="finDesc" placeholder="Description…" style="flex:2;min-width:140px" />
-          <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" style="flex:1;min-width:90px" />
-          <select id="finType" onchange="finUpdateCatSelect()" style="flex:1;min-width:110px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
-            <option value="depense">Dépense</option>
-            <option value="revenu">Revenu</option>
-          </select>
-          <select id="finCat" style="flex:1;min-width:120px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:14px">
-            <option value="">— Catégorie —</option>
-          </select>
-          <input type="date" id="finDate" style="flex:1;min-width:130px" />
-          <button class="btn-add" onclick="addTransaction()" style="padding:10px 20px">+</button>
-        </div>
-      </div>
+      <!-- CATÉGORIES OVERVIEW -->
+      <div id="finCatsOverview" style="max-width:660px;margin:0 auto"></div>
 
       <!-- LISTE TRANSACTIONS -->
       <div class="panel" style="max-width:660px;margin:0 auto 32px">
@@ -2321,6 +2308,37 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Modale nouvelle transaction -->
+  <div class="sheet-backdrop" id="finTxBackdrop" onclick="closeTransactionModal()"></div>
+  <div class="bottom-sheet" id="finTxModal" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouvelle transaction</div>
+    <div class="sheet-input-block">
+      <input type="text" id="finDesc" placeholder="Description…" />
+    </div>
+    <div class="sheet-input-block">
+      <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" min="0" />
+    </div>
+    <div class="sheet-input-block">
+      <select id="finType" onchange="finUpdateCatSelect()">
+        <option value="depense">Dépense</option>
+        <option value="revenu">Revenu</option>
+      </select>
+    </div>
+    <div class="sheet-input-block">
+      <select id="finCat">
+        <option value="">— Catégorie (optionnel) —</option>
+      </select>
+    </div>
+    <div class="sheet-input-block">
+      <input type="date" id="finDate" />
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeTransactionModal()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" onclick="addTransaction()">Ajouter</button>
+    </div>
   </div>
 
   <!-- Modale création domaine -->
@@ -3483,7 +3501,9 @@
         fab.title = 'Nouveau domaine';
         renderDomains();
       } else if (name === 'finances') {
-        fab.style.display = 'none';
+        fab.style.display = 'flex';
+        fab.onclick = openTransactionModal;
+        fab.title = 'Nouvelle transaction';
         finBackToMain();
         finUpdateCatSelect();
         renderFinances();
@@ -3534,12 +3554,30 @@
       document.getElementById('fin-main').style.display = 'none';
       document.getElementById('fin-cat-rev').style.display = type === 'revenu' ? '' : 'none';
       document.getElementById('fin-cat-dep').style.display = type === 'depense' ? '' : 'none';
+      document.getElementById('fab').style.display = 'none';
       renderFinCatLists();
     }
     function finBackToMain() {
       document.getElementById('fin-main').style.display = '';
       document.getElementById('fin-cat-rev').style.display = 'none';
       document.getElementById('fin-cat-dep').style.display = 'none';
+      const fab = document.getElementById('fab');
+      fab.style.display = 'flex';
+      fab.onclick = openTransactionModal;
+    }
+
+    function openTransactionModal() {
+      document.getElementById('finDesc').value = '';
+      document.getElementById('finMontant').value = '';
+      document.getElementById('finDate').value = '';
+      finUpdateCatSelect();
+      document.getElementById('finTxBackdrop').classList.add('open');
+      document.getElementById('finTxModal').classList.add('open');
+      document.getElementById('finDesc').focus();
+    }
+    function closeTransactionModal() {
+      document.getElementById('finTxBackdrop').classList.remove('open');
+      document.getElementById('finTxModal').classList.remove('open');
     }
 
     function finUpdateCatSelect() {
@@ -3559,9 +3597,7 @@
       if (!desc || isNaN(montant) || montant <= 0) return;
       transactions.unshift({ id: Date.now(), desc, montant, type, catId, date });
       saveTransactions();
-      document.getElementById('finDesc').value = '';
-      document.getElementById('finMontant').value = '';
-      document.getElementById('finDate').value = '';
+      closeTransactionModal();
       renderFinances();
     }
 
@@ -3624,39 +3660,74 @@
       document.getElementById('finDepenses').textContent = '-' + depenses.toFixed(2) + ' €';
       document.getElementById('finDepenses').style.color = '#ff6b6b';
 
-      // Budgets par catégorie dépenses
-      const budgetsPanel = document.getElementById('finBudgetsPanel');
-      const budgetsList = document.getElementById('finBudgetsList');
-      if (finCategories.depenses.length === 0) {
-        budgetsPanel.style.display = 'none';
-      } else {
-        budgetsPanel.style.display = '';
-        budgetsList.innerHTML = finCategories.depenses.map(cat => {
-          const spent = monthTx
-            .filter(t => t.type === 'depense' && String(t.catId) === String(cat.id))
-            .reduce((s, t) => s + t.montant, 0);
+      // Vue par catégories
+      const overview = document.getElementById('finCatsOverview');
+      let ovHtml = '';
+
+      // — Revenus —
+      const revTx = monthTx.filter(t => t.type === 'revenu');
+      if (finCategories.revenus.length > 0 || revTx.length > 0) {
+        ovHtml += `<div class="panel" style="margin-bottom:24px">
+          <div class="panel-header"><span class="panel-title">Revenus</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px">`;
+        for (const cat of finCategories.revenus) {
+          const total = revTx.filter(t => String(t.catId) === String(cat.id)).reduce((s, t) => s + t.montant, 0);
+          ovHtml += `<div style="flex:1;min-width:130px;padding:14px 16px;border-radius:12px;background:var(--surface-hover);border:1.5px solid var(--border)">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">${cat.name}</div>
+            <div style="font-size:20px;font-weight:700;color:var(--accent)">+${total.toFixed(2)} €</div>
+          </div>`;
+        }
+        const revNoCat = revTx.filter(t => !t.catId).reduce((s, t) => s + t.montant, 0);
+        if (revNoCat > 0) {
+          ovHtml += `<div style="flex:1;min-width:130px;padding:14px 16px;border-radius:12px;background:var(--surface-hover);border:1.5px solid var(--border)">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Sans catégorie</div>
+            <div style="font-size:20px;font-weight:700;color:var(--accent)">+${revNoCat.toFixed(2)} €</div>
+          </div>`;
+        }
+        ovHtml += `</div></div>`;
+      }
+
+      // — Dépenses —
+      const depTx = monthTx.filter(t => t.type === 'depense');
+      if (finCategories.depenses.length > 0 || depTx.length > 0) {
+        ovHtml += `<div class="panel" style="margin-bottom:24px">
+          <div class="panel-header"><span class="panel-title">Dépenses</span></div>`;
+        for (const cat of finCategories.depenses) {
+          const spent = depTx.filter(t => String(t.catId) === String(cat.id)).reduce((s, t) => s + t.montant, 0);
           const pct = cat.budget > 0 ? Math.min(100, (spent / cat.budget) * 100) : 0;
           const over = cat.budget > 0 && spent > cat.budget;
           const barColor = over ? '#ff6b6b' : pct > 75 ? '#ffb347' : 'var(--accent)';
-          return `
-            <div style="margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-                <span style="font-size:14px;font-weight:500">${cat.name}</span>
-                <span style="font-size:13px;color:${over ? '#ff6b6b' : 'var(--text-secondary)'}">
-                  ${spent.toFixed(2)} € /
-                  <input type="number" value="${cat.budget || ''}" placeholder="budget" step="0.01"
-                    onchange="updateCatBudget(${cat.id}, this.value)"
-                    style="width:68px;background:none;border:none;border-bottom:1px solid var(--border);
-                           color:var(--text-primary);font-size:13px;text-align:right;padding:0 2px" /> €
-                </span>
-              </div>
-              ${cat.budget > 0 ? `
-              <div style="height:6px;border-radius:4px;background:var(--border);overflow:hidden">
-                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
-              </div>` : ''}
-            </div>`;
-        }).join('');
+          ovHtml += `<div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <span style="font-size:14px;font-weight:500">${cat.name}</span>
+              <span style="font-size:13px;color:${over ? '#ff6b6b' : 'var(--text-secondary)'}">
+                ${spent.toFixed(2)} €${cat.budget > 0
+                  ? ` / <input type="number" value="${cat.budget}" step="0.01" onchange="updateCatBudget(${cat.id},this.value)"
+                      style="width:60px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text-primary);font-size:13px;text-align:right;padding:0 2px" /> €`
+                  : ''}
+              </span>
+            </div>
+            ${cat.budget > 0 ? `<div style="height:6px;border-radius:4px;background:var(--border);overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
+            </div>` : ''}
+          </div>`;
+        }
+        const depNoCat = depTx.filter(t => !t.catId).reduce((s, t) => s + t.montant, 0);
+        if (depNoCat > 0) {
+          ovHtml += `<div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:4px">
+            <span style="font-size:14px;color:var(--text-secondary)">Sans catégorie</span>
+            <span style="font-size:14px;font-weight:600;color:#ff6b6b">-${depNoCat.toFixed(2)} €</span>
+          </div>`;
+        }
+        ovHtml += `</div>`;
       }
+
+      if (!ovHtml) {
+        ovHtml = `<div style="text-align:center;color:var(--text-secondary);padding:32px 0;margin-bottom:24px">
+          Aucune transaction ce mois — appuyez sur + pour commencer.
+        </div>`;
+      }
+      overview.innerHTML = ovHtml;
 
       // Liste transactions
       const list = document.getElementById('finList');
