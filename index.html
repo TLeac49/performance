@@ -1438,6 +1438,18 @@
     .fin-tx-out { background: #ff6b6b; }
     .fin-tx-label { flex: 1; font-size: 15px; color: var(--text-primary); }
     .fin-tx-amount { font-size: 15px; font-weight: 600; }
+    .fin-tabs {
+      display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 16px;
+    }
+    .fin-tab {
+      padding: 9px 18px; font-size: 14px; font-weight: 500; color: var(--text-secondary);
+      cursor: pointer; border: none; background: none; position: relative; transition: color .18s;
+    }
+    .fin-tab.active { color: var(--fin-green); font-weight: 700; }
+    .fin-tab.active::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+      height: 2px; background: var(--fin-green); border-radius: 2px 2px 0 0;
+    }
 
     /* FAB */
     .fab {
@@ -2311,6 +2323,10 @@
           <span>Solde global</span>
           <span id="finGlobalSolde">—</span>
         </div>
+        <div class="fin-tabs">
+          <button class="fin-tab active" id="finTabQ" onclick="finAccTab('courant')">Quotidien</button>
+          <button class="fin-tab"        id="finTabE" onclick="finAccTab('epargne')">Épargne</button>
+        </div>
         <div id="finAccountsList"></div>
         <button class="fin-action-btn" onclick="finShowView('fin-accounts')">Gérer mes comptes</button>
       </div>
@@ -2406,6 +2422,11 @@
       <select id="finType">
         <option value="depense">Dépense</option>
         <option value="revenu">Revenu</option>
+      </select>
+    </div>
+    <div class="sheet-input-block">
+      <select id="finAccSelect">
+        <option value="">— Compte (optionnel) —</option>
       </select>
     </div>
     <div class="sheet-input-block">
@@ -3652,6 +3673,31 @@
     }
 
     // ---- COMPTES BANCAIRES ----
+    let _finAccTab = 'courant';
+    function finAccTab(type) {
+      _finAccTab = type;
+      document.getElementById('finTabQ').classList.toggle('active', type === 'courant');
+      document.getElementById('finTabE').classList.toggle('active', type === 'epargne');
+      renderFinAccList();
+    }
+    function renderFinAccList() {
+      const filtered = bankAccounts.filter(a => a.type === _finAccTab);
+      const accList  = document.getElementById('finAccountsList');
+      if (!filtered.length) {
+        accList.innerHTML = `<div style="font-size:13px;color:var(--text-secondary);padding:10px 0 4px">Aucun compte ${_finAccTab === 'courant' ? 'courant' : 'épargne'} ajouté.</div>`;
+        return;
+      }
+      accList.innerHTML = filtered.map(acc => `
+        <div class="fin-account-row">
+          <div class="fin-acc-icon">${acc.type === 'epargne' ? '💰' : '🏦'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600">${acc.name}</div>
+            <div style="font-size:11px;color:var(--text-secondary)">${acc.type === 'epargne' ? 'Épargne' : 'Courant'}</div>
+          </div>
+          <span style="font-size:15px;font-weight:700">${acc.solde.toFixed(2)} €</span>
+        </div>`).join('');
+    }
+
     let _editAccId = null;
     function openAccountModal(id = null) {
       _editAccId = id;
@@ -3739,6 +3785,11 @@
         </li>`).join('');
     }
     function deleteTx(id) {
+      const tx = transactions.find(t => t.id === id);
+      if (tx && tx.accountId) {
+        const acc = bankAccounts.find(a => a.id === tx.accountId);
+        if (acc) { acc.solde += tx.type === 'revenu' ? -tx.montant : tx.montant; saveBankAccounts(); }
+      }
       transactions = transactions.filter(t => t.id !== id);
       saveTransactions();
       renderFinances();
@@ -3746,9 +3797,13 @@
     }
 
     function openTransactionModal() {
-      document.getElementById('finDesc').value = '';
+      document.getElementById('finDesc').value    = '';
       document.getElementById('finMontant').value = '';
-      document.getElementById('finDate').value = '';
+      document.getElementById('finDate').value    = '';
+      // Peupler le sélecteur de compte
+      const sel = document.getElementById('finAccSelect');
+      sel.innerHTML = '<option value="">— Compte (optionnel) —</option>' +
+        bankAccounts.map(a => `<option value="${a.id}">${a.name} (${a.type === 'epargne' ? 'Épargne' : 'Courant'}) — ${a.solde.toFixed(2)} €</option>`).join('');
       document.getElementById('finTxBackdrop').classList.add('open');
       document.getElementById('finTxModal').classList.add('open');
       document.getElementById('finDesc').focus();
@@ -3759,12 +3814,19 @@
     }
 
     function addTransaction() {
-      const desc = document.getElementById('finDesc').value.trim();
-      const montant = parseFloat(document.getElementById('finMontant').value);
-      const type = document.getElementById('finType').value;
-      const date = document.getElementById('finDate').value || new Date().toISOString().slice(0, 10);
+      const desc      = document.getElementById('finDesc').value.trim();
+      const montant   = parseFloat(document.getElementById('finMontant').value);
+      const type      = document.getElementById('finType').value;
+      const date      = document.getElementById('finDate').value || new Date().toISOString().slice(0, 10);
+      const accIdRaw  = document.getElementById('finAccSelect').value;
+      const accountId = accIdRaw ? parseInt(accIdRaw) : null;
       if (!desc || isNaN(montant) || montant <= 0) return;
-      transactions.unshift({ id: Date.now(), desc, montant, type, date });
+      // Mettre à jour le solde du compte lié
+      if (accountId) {
+        const acc = bankAccounts.find(a => a.id === accountId);
+        if (acc) { acc.solde += type === 'revenu' ? montant : -montant; saveBankAccounts(); }
+      }
+      transactions.unshift({ id: Date.now(), desc, montant, type, date, accountId });
       saveTransactions();
       closeTransactionModal();
       renderFinances();
@@ -3797,20 +3859,7 @@
       const gs = document.getElementById('finGlobalSolde');
       gs.textContent = (globalSolde >= 0 ? '+' : '') + globalSolde.toFixed(2) + ' €';
       gs.style.color = globalSolde >= 0 ? 'var(--fin-green)' : '#ff6b6b';
-      const accList = document.getElementById('finAccountsList');
-      if (!bankAccounts.length) {
-        accList.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);padding:8px 0 4px">Aucun compte ajouté.</div>';
-      } else {
-        accList.innerHTML = bankAccounts.map(acc => `
-          <div class="fin-account-row">
-            <div class="fin-acc-icon">${acc.type === 'epargne' ? '💰' : '🏦'}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:14px;font-weight:600">${acc.name}</div>
-              <div style="font-size:11px;color:var(--text-secondary)">${acc.type === 'epargne' ? 'Épargne' : 'Courant'}</div>
-            </div>
-            <span style="font-size:15px;font-weight:700">${acc.solde.toFixed(2)} €</span>
-          </div>`).join('');
-      }
+      renderFinAccList();
 
       // Résumé transactions
       document.getElementById('finTxMonthBadge').textContent = FIN_MONTHS[finViewMonth];
