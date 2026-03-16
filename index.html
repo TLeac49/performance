@@ -3813,7 +3813,7 @@
       } else if (name === 'finances') {
         fab.style.display = 'flex';
         fab.classList.add('fab-fin');
-        fab.onclick = openTransactionModal;
+        fab.onclick = () => openTransactionModal();
         fab.title = 'Nouvelle transaction';
         renderFinances();
       } else {
@@ -3988,7 +3988,7 @@
       FIN_VIEWS.forEach(v => document.getElementById(v).style.display = v === id ? '' : 'none');
       const fab = document.getElementById('fab');
       if (id === 'fin-transactions') {
-        fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = openTransactionModal;
+        fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = () => openTransactionModal();
       } else {
         fab.style.display = 'none'; fab.classList.remove('fab-fin');
       }
@@ -4001,7 +4001,7 @@
       document.getElementById('fin-main').style.display = '';
       FIN_VIEWS.forEach(v => document.getElementById(v).style.display = 'none');
       const fab = document.getElementById('fab');
-      fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = openTransactionModal;
+      fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = () => openTransactionModal();
       renderFinances();
     }
 
