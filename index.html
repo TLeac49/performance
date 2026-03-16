@@ -1438,17 +1438,22 @@
     .fin-tx-out { background: #ff6b6b; }
     .fin-tx-label { flex: 1; font-size: 15px; color: var(--text-primary); }
     .fin-tx-amount { font-size: 15px; font-weight: 600; }
-    .fin-tabs {
-      display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 16px;
+    .fin-tabs-pill {
+      display: flex; gap: 4px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 4px;
+      max-width: 660px; margin: 0 auto 24px;
     }
-    .fin-tab {
-      padding: 9px 18px; font-size: 14px; font-weight: 500; color: var(--text-secondary);
-      cursor: pointer; border: none; background: none; position: relative; transition: color .18s;
+    .fin-tab-pill {
+      flex: 1; padding: 11px 16px; border-radius: 12px; border: none;
+      background: none; color: var(--text-secondary); font-size: 14px;
+      font-weight: 500; cursor: pointer; transition: all .2s; text-align: center;
+      font-family: inherit;
     }
-    .fin-tab.active { color: var(--fin-green); font-weight: 700; }
-    .fin-tab.active::after {
-      content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
-      height: 2px; background: var(--fin-green); border-radius: 2px 2px 0 0;
+    .fin-tab-pill.active {
+      background: var(--surface); color: var(--fin-green); font-weight: 700;
+      box-shadow: 0 1px 6px rgba(0,0,0,.12);
     }
 
     /* FAB */
@@ -2316,18 +2321,20 @@
         </div>
       </div>
 
-      <!-- COMPTES BANCAIRES -->
-      <div class="fin-card">
-        <div class="fin-card-title">Comptes bancaires</div>
-        <div class="fin-global-row">
-          <span>Solde global</span>
-          <span id="finGlobalSolde">—</span>
-        </div>
-        <div class="fin-tabs">
-          <button class="fin-tab active" id="finTabQ" onclick="finAccTab('courant')">Quotidien</button>
-          <button class="fin-tab"        id="finTabE" onclick="finAccTab('epargne')">Épargne</button>
-        </div>
-        <div id="finAccountsList"></div>
+      <!-- COMPTES BANCAIRES – pill tabs -->
+      <div class="fin-tabs-pill">
+        <button class="fin-tab-pill active" id="finTabQ" onclick="finAccTab('courant')">Quotidien</button>
+        <button class="fin-tab-pill"        id="finTabE" onclick="finAccTab('epargne')">Épargne</button>
+      </div>
+
+      <div style="max-width:660px;margin:0 auto 8px;padding:0 4px">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px" id="finTabLabel">Total de mes comptes courants</div>
+        <div style="font-size:2rem;font-weight:800;letter-spacing:-.03em" id="finTabTotal">—</div>
+      </div>
+
+      <div style="max-width:660px;margin:0 auto 8px" id="finAccountsList"></div>
+
+      <div style="max-width:660px;margin:0 auto 24px">
         <button class="fin-action-btn" onclick="finShowView('fin-accounts')">Gérer mes comptes</button>
       </div>
 
@@ -3681,20 +3688,28 @@
       renderFinAccList();
     }
     function renderFinAccList() {
-      const filtered = bankAccounts.filter(a => a.type === _finAccTab);
-      const accList  = document.getElementById('finAccountsList');
+      const filtered  = bankAccounts.filter(a => a.type === _finAccTab);
+      const tabTotal  = filtered.reduce((s, a) => s + a.solde, 0);
+      const labelEl   = document.getElementById('finTabLabel');
+      const totalEl   = document.getElementById('finTabTotal');
+      if (labelEl) labelEl.textContent = _finAccTab === 'courant' ? 'Total de mes comptes courants' : 'Total de mon épargne';
+      if (totalEl) {
+        totalEl.textContent  = (tabTotal >= 0 ? '+' : '') + tabTotal.toFixed(2) + ' €';
+        totalEl.style.color  = tabTotal >= 0 ? 'var(--fin-green)' : '#ff6b6b';
+      }
+      const accList = document.getElementById('finAccountsList');
       if (!filtered.length) {
-        accList.innerHTML = `<div style="font-size:13px;color:var(--text-secondary);padding:10px 0 4px">Aucun compte ${_finAccTab === 'courant' ? 'courant' : 'épargne'} ajouté.</div>`;
+        accList.innerHTML = `<div class="fin-card" style="font-size:13px;color:var(--text-secondary);text-align:center;padding:22px">Aucun compte ${_finAccTab === 'courant' ? 'courant' : 'épargne'} — gérez vos comptes ci-dessous.</div>`;
         return;
       }
       accList.innerHTML = filtered.map(acc => `
-        <div class="fin-account-row">
+        <div class="fin-account-row" style="margin-bottom:10px">
           <div class="fin-acc-icon">${acc.type === 'epargne' ? '💰' : '🏦'}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:600">${acc.name}</div>
-            <div style="font-size:11px;color:var(--text-secondary)">${acc.type === 'epargne' ? 'Épargne' : 'Courant'}</div>
+            <div style="font-size:15px;font-weight:600">${acc.name}</div>
+            <div style="font-size:12px;color:var(--text-secondary)">${acc.type === 'epargne' ? 'Compte épargne' : 'Compte courant'}</div>
           </div>
-          <span style="font-size:15px;font-weight:700">${acc.solde.toFixed(2)} €</span>
+          <span style="font-size:16px;font-weight:700;color:${acc.solde >= 0 ? 'var(--fin-green)' : '#ff6b6b'}">${(acc.solde >= 0 ? '' : '') + acc.solde.toFixed(2)} €</span>
         </div>`).join('');
     }
 
@@ -3855,10 +3870,6 @@
       document.getElementById('finDepenses').style.color = '#ff6b6b';
 
       // Comptes bancaires
-      const globalSolde = bankAccounts.reduce((s, a) => s + a.solde, 0);
-      const gs = document.getElementById('finGlobalSolde');
-      gs.textContent = (globalSolde >= 0 ? '+' : '') + globalSolde.toFixed(2) + ' €';
-      gs.style.color = globalSolde >= 0 ? 'var(--fin-green)' : '#ff6b6b';
       renderFinAccList();
 
       // Résumé transactions
