@@ -1466,6 +1466,24 @@
     }
     .fin-abo-toggle.on::after  { left: 19px; }
     .fin-abo-toggle.off::after { left: 3px; }
+    /* ── Objectifs / Catégories ──────────────────────────────────── */
+    .fin-goal-item {
+      margin-bottom: 16px;
+    }
+    .fin-goal-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .fin-goal-emoji {
+      font-size: 18px; width: 28px; text-align: center; flex-shrink: 0;
+    }
+    .fin-goal-name   { flex: 1; font-size: 14px; font-weight: 600; }
+    .fin-goal-amount { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+    .fin-goal-bar {
+      height: 7px; border-radius: 5px; background: var(--border); overflow: hidden;
+    }
+    .fin-goal-fill {
+      height: 100%; border-radius: 5px; transition: width .4s;
+    }
     .fin-tabs-pill {
       display: flex; gap: 4px;
       background: var(--surface-hover);
@@ -2385,6 +2403,16 @@
         <button class="fin-action-btn" onclick="finShowView('fin-transactions')">Voir mes transactions</button>
       </div>
 
+      <!-- OBJECTIFS DU MOIS -->
+      <div class="fin-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <span class="fin-card-title" style="margin:0">Objectifs du mois</span>
+          <span style="font-size:13px;color:var(--text-secondary);font-weight:500" id="finGoalsBadge"></span>
+        </div>
+        <div id="finGoalsPreview"></div>
+        <button class="fin-action-btn" onclick="finShowView('fin-cats')">Catégories &amp; objectifs</button>
+      </div>
+
       <!-- ABONNEMENTS CARD -->
       <div class="fin-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -2393,6 +2421,25 @@
         </div>
         <div id="finAboPreview"></div>
         <button class="fin-action-btn" onclick="finShowView('fin-abonnements')">Gérer mes abonnements</button>
+      </div>
+    </div>
+
+    <!-- SOUS-VUE : CATÉGORIES & OBJECTIFS -->
+    <div id="fin-cats" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="finShowMain()"><span>‹</span> Finances</button>
+      </div>
+      <div class="hero" style="margin-bottom:20px">
+        <h1>Catégories &amp; Objectifs</h1>
+        <p>Taguez vos transactions et fixez-vous des objectifs mensuels récurrents.</p>
+      </div>
+      <div style="max-width:560px;margin:0 auto">
+        <div class="fin-tabs-pill" style="margin-bottom:20px">
+          <button class="fin-tab-pill active" id="finCatTabR" onclick="finCatTab('revenu')">Revenus</button>
+          <button class="fin-tab-pill"        id="finCatTabD" onclick="finCatTab('depense')">Dépenses</button>
+        </div>
+        <div id="finCatList"></div>
+        <button class="fin-action-btn" id="finCatAddBtn" onclick="openCatModal()">+ Ajouter une catégorie</button>
       </div>
     </div>
 
@@ -2446,6 +2493,28 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Modale catégorie / objectif -->
+  <div class="sheet-backdrop" id="finCatBackdrop" onclick="closeCatModal2()"></div>
+  <div class="bottom-sheet" id="finCatModal2" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="finCatModalTitle">Nouvelle catégorie</div>
+    <div class="sheet-input-block" style="display:flex;align-items:center">
+      <input type="text" id="finCatEmoji" placeholder="Emoji…" maxlength="2" style="width:56px;text-align:center;font-size:22px" />
+      <input type="text" id="finCatName2" placeholder="Nom de la catégorie…" style="flex:1" />
+    </div>
+    <p class="sheet-cat-label">Objectif mensuel <span style="font-weight:400;opacity:.7">(optionnel)</span></p>
+    <div class="sheet-input-block">
+      <input type="number" id="finCatGoal" placeholder="Montant €/mois — ex : 300" step="0.01" min="0" />
+    </div>
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;padding:0 2px">
+      Pour un revenu : montant à <b>atteindre</b>. Pour une dépense : montant à <b>ne pas dépasser</b>.
+    </p>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeCatModal2()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" id="finCatSubmitBtn" onclick="submitCatModal()">Ajouter</button>
+    </div>
   </div>
 
   <!-- Modale abonnement -->
@@ -2514,9 +2583,14 @@
       <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" min="0" />
     </div>
     <div class="sheet-input-block">
-      <select id="finType">
+      <select id="finType" onchange="updateTxCatSelect()">
         <option value="depense">Dépense</option>
         <option value="revenu">Revenu</option>
+      </select>
+    </div>
+    <div class="sheet-input-block">
+      <select id="finTxCat">
+        <option value="">— Catégorie (optionnel) —</option>
       </select>
     </div>
     <div class="sheet-input-block">
@@ -3721,8 +3795,10 @@
     let finCategories = JSON.parse(localStorage.getItem('fin_categories') || '{"revenus":[],"depenses":[]}');
     let bankAccounts  = JSON.parse(localStorage.getItem('fin_accounts')     || '[]');
     let abonnements   = JSON.parse(localStorage.getItem('fin_abonnements')  || '[]');
+    let finCats       = JSON.parse(localStorage.getItem('fin_cats2')        || '{"revenus":[],"depenses":[]}');
     function saveBankAccounts() { localStorage.setItem('fin_accounts',     JSON.stringify(bankAccounts)); }
     function saveAbonnements()  { localStorage.setItem('fin_abonnements',  JSON.stringify(abonnements));  }
+    function saveFinCats()      { localStorage.setItem('fin_cats2',        JSON.stringify(finCats));       }
 
     const ABO_CATS = {
       streaming: { label: 'Streaming',     emoji: '🎬' },
@@ -3756,8 +3832,114 @@
       renderFinances();
     }
 
+    // ---- CATÉGORIES & OBJECTIFS ----
+    let _finCatTab = 'revenu';
+    let _editCatId = null;
+
+    function finCatTab(type) {
+      _finCatTab = type;
+      document.getElementById('finCatTabR').classList.toggle('active', type === 'revenu');
+      document.getElementById('finCatTabD').classList.toggle('active', type === 'depense');
+      renderCatList();
+    }
+
+    function openCatModal(id = null) {
+      _editCatId = id;
+      const list = _finCatTab === 'revenu' ? finCats.revenus : finCats.depenses;
+      if (id) {
+        const cat = list.find(c => c.id === id);
+        document.getElementById('finCatEmoji').value  = cat.emoji || '';
+        document.getElementById('finCatName2').value  = cat.name;
+        document.getElementById('finCatGoal').value   = cat.goal || '';
+        document.getElementById('finCatModalTitle').textContent = 'Modifier la catégorie';
+        document.getElementById('finCatSubmitBtn').textContent  = 'Enregistrer';
+      } else {
+        document.getElementById('finCatEmoji').value  = '';
+        document.getElementById('finCatName2').value  = '';
+        document.getElementById('finCatGoal').value   = '';
+        document.getElementById('finCatModalTitle').textContent = `Nouvelle catégorie ${_finCatTab === 'revenu' ? 'revenu' : 'dépense'}`;
+        document.getElementById('finCatSubmitBtn').textContent  = 'Ajouter';
+      }
+      document.getElementById('finCatBackdrop').classList.add('open');
+      document.getElementById('finCatModal2').classList.add('open');
+      document.getElementById('finCatName2').focus();
+    }
+    function closeCatModal2() {
+      document.getElementById('finCatBackdrop').classList.remove('open');
+      document.getElementById('finCatModal2').classList.remove('open');
+    }
+    function submitCatModal() {
+      const name  = document.getElementById('finCatName2').value.trim();
+      const emoji = document.getElementById('finCatEmoji').value.trim() || '📂';
+      const goal  = parseFloat(document.getElementById('finCatGoal').value) || null;
+      if (!name) return;
+      const list = _finCatTab === 'revenu' ? finCats.revenus : finCats.depenses;
+      if (_editCatId) {
+        const cat = list.find(c => c.id === _editCatId);
+        if (cat) { cat.name = name; cat.emoji = emoji; cat.goal = goal; }
+      } else {
+        list.push({ id: Date.now(), name, emoji, goal });
+      }
+      saveFinCats(); closeCatModal2(); renderCatList(); renderFinances();
+    }
+    function deleteCat(id) {
+      finCats.revenus  = finCats.revenus.filter(c => c.id !== id);
+      finCats.depenses = finCats.depenses.filter(c => c.id !== id);
+      saveFinCats(); renderCatList(); renderFinances();
+    }
+
+    function renderCatList() {
+      const list = _finCatTab === 'revenu' ? finCats.revenus : finCats.depenses;
+      const el   = document.getElementById('finCatList');
+      if (!el) return;
+      // Calcul de la progression pour ce mois
+      const monthTx = transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === finViewMonth && d.getFullYear() === finViewYear;
+      });
+      if (!list.length) {
+        el.innerHTML = `<div style="color:var(--text-secondary);text-align:center;padding:24px 0;font-size:14px">
+          Aucune catégorie — ajoutez-en une ci-dessous.</div>`;
+        return;
+      }
+      el.innerHTML = list.map(cat => {
+        const txType  = _finCatTab === 'revenu' ? 'revenu' : 'depense';
+        const actual  = monthTx.filter(t => t.type === txType && t.catId === cat.id).reduce((s, t) => s + t.montant, 0);
+        const hasGoal = cat.goal && cat.goal > 0;
+        const pct     = hasGoal ? Math.min(100, (actual / cat.goal) * 100) : 0;
+        const isRev   = _finCatTab === 'revenu';
+        const reached = isRev  ? actual >= cat.goal : false;
+        const over    = !isRev ? actual >  cat.goal : false;
+        const barColor = isRev
+          ? (reached ? 'var(--fin-green)' : 'var(--fin-green)')
+          : (over ? '#ff6b6b' : pct > 75 ? '#ffb347' : 'var(--fin-green)');
+        return `<div class="fin-card" style="margin-bottom:10px;padding:14px 16px">
+          <div class="fin-goal-header">
+            <span class="fin-goal-emoji">${cat.emoji}</span>
+            <span class="fin-goal-name">${cat.name}</span>
+            ${hasGoal ? `<span class="fin-goal-amount">${actual.toFixed(2)} € / ${cat.goal.toFixed(2)} €</span>` : `<span class="fin-goal-amount">${actual.toFixed(2)} €</span>`}
+            <button onclick="openCatModal(${cat.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:15px;padding:0 3px">✎</button>
+            <button onclick="deleteCat(${cat.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:19px;padding:0 3px">×</button>
+          </div>
+          ${hasGoal ? `
+          <div class="fin-goal-bar"><div class="fin-goal-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <div style="font-size:11px;color:${over ? '#ff6b6b' : reached ? 'var(--fin-green)' : 'var(--text-secondary)'};margin-top:4px;text-align:right">
+            ${over ? '⚠️ Limite dépassée' : reached ? '✓ Objectif atteint' : Math.round(pct) + '% ' + (isRev ? 'atteint' : 'utilisé')}
+          </div>` : `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Aucun objectif fixé</div>`}
+        </div>`;
+      }).join('');
+    }
+
+    function updateTxCatSelect() {
+      const type = document.getElementById('finType').value;
+      const list = type === 'revenu' ? finCats.revenus : finCats.depenses;
+      document.getElementById('finTxCat').innerHTML =
+        '<option value="">— Catégorie (optionnel) —</option>' +
+        list.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+    }
+
     // ---- NAVIGATION FINANCES ----
-    const FIN_VIEWS = ['fin-accounts', 'fin-transactions', 'fin-abonnements'];
+    const FIN_VIEWS = ['fin-accounts', 'fin-transactions', 'fin-abonnements', 'fin-cats'];
     function finShowView(id) {
       document.getElementById('fin-main').style.display = 'none';
       FIN_VIEWS.forEach(v => document.getElementById(v).style.display = v === id ? '' : 'none');
@@ -3770,6 +3952,7 @@
       if (id === 'fin-accounts')     renderAccountsManage();
       if (id === 'fin-transactions') renderTxList();
       if (id === 'fin-abonnements')  renderAboList();
+      if (id === 'fin-cats')         { _finCatTab = 'revenu'; document.getElementById('finCatTabR').classList.add('active'); document.getElementById('finCatTabD').classList.remove('active'); renderCatList(); }
     }
     function finShowMain() {
       document.getElementById('fin-main').style.display = '';
@@ -3991,6 +4174,8 @@
       document.getElementById('finDesc').value    = '';
       document.getElementById('finMontant').value = '';
       document.getElementById('finDate').value    = '';
+      // Peupler le sélecteur de catégorie
+      updateTxCatSelect();
       // Peupler le sélecteur de compte
       const sel = document.getElementById('finAccSelect');
       sel.innerHTML = '<option value="">— Compte (optionnel) —</option>' +
@@ -4009,6 +4194,8 @@
       const montant   = parseFloat(document.getElementById('finMontant').value);
       const type      = document.getElementById('finType').value;
       const date      = document.getElementById('finDate').value || new Date().toISOString().slice(0, 10);
+      const catIdRaw  = document.getElementById('finTxCat').value;
+      const catId     = catIdRaw ? parseInt(catIdRaw) : null;
       const accIdRaw  = document.getElementById('finAccSelect').value;
       const accountId = accIdRaw ? parseInt(accIdRaw) : null;
       if (!desc || isNaN(montant) || montant <= 0) return;
@@ -4017,7 +4204,7 @@
         const acc = bankAccounts.find(a => a.id === accountId);
         if (acc) { acc.solde += type === 'revenu' ? montant : -montant; saveBankAccounts(); }
       }
-      transactions.unshift({ id: Date.now(), desc, montant, type, date, accountId });
+      transactions.unshift({ id: Date.now(), desc, montant, type, date, catId, accountId });
       saveTransactions();
       closeTransactionModal();
       renderFinances();
@@ -4052,6 +4239,39 @@
       document.getElementById('finTxMonthBadge').textContent = FIN_MONTHS[finViewMonth];
       document.getElementById('finEntrees').textContent = '+' + revenus.toFixed(2) + ' €';
       document.getElementById('finSorties').textContent = '-' + depenses.toFixed(2) + ' €';
+
+      // Objectifs du mois
+      const allCatsWithGoal = [
+        ...finCats.revenus.filter(c => c.goal).map(c => ({ ...c, txType: 'revenu' })),
+        ...finCats.depenses.filter(c => c.goal).map(c => ({ ...c, txType: 'depense' })),
+      ];
+      const goalsReached = allCatsWithGoal.filter(c => {
+        const actual = monthTx.filter(t => t.type === c.txType && t.catId === c.id).reduce((s, t) => s + t.montant, 0);
+        return c.txType === 'revenu' ? actual >= c.goal : actual <= c.goal;
+      }).length;
+      document.getElementById('finGoalsBadge').textContent = allCatsWithGoal.length
+        ? `${goalsReached} / ${allCatsWithGoal.length} atteints` : '';
+      const gp = document.getElementById('finGoalsPreview');
+      if (!allCatsWithGoal.length) {
+        gp.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);padding:6px 0 2px">Aucun objectif fixé — créez des catégories.</div>';
+      } else {
+        gp.innerHTML = allCatsWithGoal.slice(0, 4).map(cat => {
+          const actual = monthTx.filter(t => t.type === cat.txType && t.catId === cat.id).reduce((s, t) => s + t.montant, 0);
+          const pct    = Math.min(100, (actual / cat.goal) * 100);
+          const isRev  = cat.txType === 'revenu';
+          const over   = !isRev && actual > cat.goal;
+          const done   =  isRev && actual >= cat.goal;
+          const color  = over ? '#ff6b6b' : pct > 75 && !isRev ? '#ffb347' : 'var(--fin-green)';
+          return `<div class="fin-goal-item">
+            <div class="fin-goal-header">
+              <span class="fin-goal-emoji">${cat.emoji}</span>
+              <span class="fin-goal-name">${cat.name}</span>
+              <span class="fin-goal-amount" style="color:${over?'#ff6b6b':done?'var(--fin-green)':'var(--text-secondary)'}">${actual.toFixed(2)} / ${cat.goal.toFixed(2)} €</span>
+            </div>
+            <div class="fin-goal-bar"><div class="fin-goal-fill" style="width:${pct}%;background:${color}"></div></div>
+          </div>`;
+        }).join('') + (allCatsWithGoal.length > 4 ? `<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:4px 0">+${allCatsWithGoal.length-4} autres</div>` : '');
+      }
 
       // Aperçu abonnements
       const aboActive = abonnements.filter(a => a.actif);
