@@ -1376,6 +1376,14 @@
     .sheet-btn-add { background: var(--accent); color: #fff; }
     .sheet-btn-add:hover { background: var(--accent-hover); }
 
+    /* ── FINANCES – couleur verte ──────────────────────────────────── */
+    :root { --fin-green: #1a6b47; --fin-green-hover: #155a3c; }
+    #page-finances { --accent: var(--fin-green); --accent-hover: var(--fin-green-hover); }
+    #finTxModal .sheet-btn-add              { background: var(--fin-green); }
+    #finTxModal .sheet-btn-add:hover        { background: var(--fin-green-hover); }
+    .fab.fab-fin                            { background: var(--fin-green); box-shadow: 0 4px 20px rgba(26,107,71,.45); }
+    .fab.fab-fin:hover                      { background: var(--fin-green-hover); }
+
     /* FAB */
     .fab {
       position: fixed;
@@ -3415,6 +3423,7 @@
 
       // FAB context
       const fab = document.getElementById('fab');
+      fab.classList.remove('fab-fin');
       if (name === 'rappels') {
         fab.style.display = 'flex';
         fab.onclick = openReminderModal;
@@ -3430,6 +3439,7 @@
         renderDomains();
       } else if (name === 'finances') {
         fab.style.display = 'flex';
+        fab.classList.add('fab-fin');
         fab.onclick = openTransactionModal;
         fab.title = 'Nouvelle transaction';
         renderFinances();
