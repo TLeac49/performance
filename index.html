@@ -1438,6 +1438,34 @@
     .fin-tx-out { background: #ff6b6b; }
     .fin-tx-label { flex: 1; font-size: 15px; color: var(--text-primary); }
     .fin-tx-amount { font-size: 15px; font-weight: 600; }
+    /* ── Abonnements ──────────────────────────────────────────────── */
+    .fin-abo-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 14px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: 9px;
+      transition: opacity .2s;
+    }
+    .fin-abo-icon {
+      width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+      background: rgba(26,107,71,.1);
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .fin-abo-toggle {
+      width: 40px; height: 24px; border-radius: 12px; border: none;
+      cursor: pointer; position: relative; flex-shrink: 0; padding: 0;
+      transition: background .22s;
+    }
+    .fin-abo-toggle.on  { background: var(--fin-green); }
+    .fin-abo-toggle.off { background: var(--border); }
+    .fin-abo-toggle::after {
+      content: ''; position: absolute; width: 18px; height: 18px;
+      border-radius: 50%; background: #fff; top: 3px; transition: left .22s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .fin-abo-toggle.on::after  { left: 19px; }
+    .fin-abo-toggle.off::after { left: 3px; }
     .fin-tabs-pill {
       display: flex; gap: 4px;
       background: var(--surface-hover);
@@ -2356,6 +2384,35 @@
         </div>
         <button class="fin-action-btn" onclick="finShowView('fin-transactions')">Voir mes transactions</button>
       </div>
+
+      <!-- ABONNEMENTS CARD -->
+      <div class="fin-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span class="fin-card-title" style="margin:0">Abonnements</span>
+          <span style="font-size:13px;background:rgba(255,107,107,.1);color:#ff6b6b;padding:4px 11px;border-radius:20px;font-weight:700" id="finAboTotal">—/mois</span>
+        </div>
+        <div id="finAboPreview"></div>
+        <button class="fin-action-btn" onclick="finShowView('fin-abonnements')">Gérer mes abonnements</button>
+      </div>
+    </div>
+
+    <!-- SOUS-VUE : ABONNEMENTS -->
+    <div id="fin-abonnements" style="display:none">
+      <div class="detail-header">
+        <button class="detail-back" onclick="finShowMain()"><span>‹</span> Finances</button>
+      </div>
+      <div class="hero" style="margin-bottom:24px">
+        <h1>Abonnements</h1>
+        <p>Vos dépenses récurrentes — ajoutées une fois, suivies en permanence.</p>
+      </div>
+      <div style="max-width:520px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">Total mensuel actif</div>
+          <div style="font-size:2.2rem;font-weight:800;letter-spacing:-.03em;color:#ff6b6b" id="finAboTotalFull">—</div>
+        </div>
+        <div id="finAboList"></div>
+        <button class="fin-action-btn" style="margin-top:8px" onclick="openAboModal()">+ Ajouter un abonnement</button>
+      </div>
     </div>
 
     <!-- SOUS-VUE : COMPTES -->
@@ -2389,6 +2446,37 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Modale abonnement -->
+  <div class="sheet-backdrop" id="finAboBackdrop" onclick="closeAboModal()"></div>
+  <div class="bottom-sheet" id="finAboModal" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="finAboModalTitle">Nouvel abonnement</div>
+    <div class="sheet-input-block">
+      <input type="text" id="finAboName" placeholder="Nom… (ex : Netflix, Spotify, Salle de sport)" />
+    </div>
+    <div class="sheet-input-block">
+      <select id="finAboCat">
+        <option value="streaming">🎬 Streaming</option>
+        <option value="musique">🎵 Musique</option>
+        <option value="sport">💪 Sport</option>
+        <option value="info">☁️ Informatique</option>
+        <option value="tel">📱 Téléphone / Mobile</option>
+        <option value="logement">🏠 Logement</option>
+        <option value="autre">📦 Autre</option>
+      </select>
+    </div>
+    <div class="sheet-input-block">
+      <input type="number" id="finAboMontant" placeholder="Montant mensuel (€)" step="0.01" min="0" />
+    </div>
+    <div class="sheet-input-block">
+      <input type="number" id="finAboJour" placeholder="Jour de prélèvement (1 – 31)" min="1" max="31" />
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeAboModal()">Annuler</button>
+      <button class="sheet-btn sheet-btn-add" id="finAboSubmitBtn" onclick="submitAboModal()">Ajouter</button>
+    </div>
   </div>
 
   <!-- Modale compte bancaire -->
@@ -3632,7 +3720,19 @@
     let transactions  = JSON.parse(localStorage.getItem('fin_transactions') || '[]');
     let finCategories = JSON.parse(localStorage.getItem('fin_categories') || '{"revenus":[],"depenses":[]}');
     let bankAccounts  = JSON.parse(localStorage.getItem('fin_accounts')     || '[]');
-    function saveBankAccounts() { localStorage.setItem('fin_accounts', JSON.stringify(bankAccounts)); }
+    let abonnements   = JSON.parse(localStorage.getItem('fin_abonnements')  || '[]');
+    function saveBankAccounts() { localStorage.setItem('fin_accounts',     JSON.stringify(bankAccounts)); }
+    function saveAbonnements()  { localStorage.setItem('fin_abonnements',  JSON.stringify(abonnements));  }
+
+    const ABO_CATS = {
+      streaming: { label: 'Streaming',     emoji: '🎬' },
+      musique:   { label: 'Musique',        emoji: '🎵' },
+      sport:     { label: 'Sport',          emoji: '💪' },
+      info:      { label: 'Informatique',   emoji: '☁️' },
+      tel:       { label: 'Téléphone',      emoji: '📱' },
+      logement:  { label: 'Logement',       emoji: '🏠' },
+      autre:     { label: 'Autre',          emoji: '📦' },
+    };
     const _now = new Date();
     let finViewMonth = _now.getMonth();
     let finViewYear = _now.getFullYear();
@@ -3657,10 +3757,10 @@
     }
 
     // ---- NAVIGATION FINANCES ----
+    const FIN_VIEWS = ['fin-accounts', 'fin-transactions', 'fin-abonnements'];
     function finShowView(id) {
       document.getElementById('fin-main').style.display = 'none';
-      document.getElementById('fin-accounts').style.display     = id === 'fin-accounts'     ? '' : 'none';
-      document.getElementById('fin-transactions').style.display = id === 'fin-transactions' ? '' : 'none';
+      FIN_VIEWS.forEach(v => document.getElementById(v).style.display = v === id ? '' : 'none');
       const fab = document.getElementById('fab');
       if (id === 'fin-transactions') {
         fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = openTransactionModal;
@@ -3669,14 +3769,90 @@
       }
       if (id === 'fin-accounts')     renderAccountsManage();
       if (id === 'fin-transactions') renderTxList();
+      if (id === 'fin-abonnements')  renderAboList();
     }
     function finShowMain() {
-      document.getElementById('fin-main').style.display         = '';
-      document.getElementById('fin-accounts').style.display     = 'none';
-      document.getElementById('fin-transactions').style.display = 'none';
+      document.getElementById('fin-main').style.display = '';
+      FIN_VIEWS.forEach(v => document.getElementById(v).style.display = 'none');
       const fab = document.getElementById('fab');
       fab.style.display = 'flex'; fab.classList.add('fab-fin'); fab.onclick = openTransactionModal;
       renderFinances();
+    }
+
+    // ---- ABONNEMENTS ----
+    let _editAboId = null;
+    function openAboModal(id = null) {
+      _editAboId = id;
+      if (id) {
+        const abo = abonnements.find(a => a.id === id);
+        document.getElementById('finAboName').value    = abo.name;
+        document.getElementById('finAboCat').value     = abo.cat;
+        document.getElementById('finAboMontant').value = abo.montant;
+        document.getElementById('finAboJour').value    = abo.jour || '';
+        document.getElementById('finAboModalTitle').textContent = 'Modifier l\'abonnement';
+        document.getElementById('finAboSubmitBtn').textContent  = 'Enregistrer';
+      } else {
+        document.getElementById('finAboName').value    = '';
+        document.getElementById('finAboMontant').value = '';
+        document.getElementById('finAboJour').value    = '';
+        document.getElementById('finAboModalTitle').textContent = 'Nouvel abonnement';
+        document.getElementById('finAboSubmitBtn').textContent  = 'Ajouter';
+      }
+      document.getElementById('finAboBackdrop').classList.add('open');
+      document.getElementById('finAboModal').classList.add('open');
+      document.getElementById('finAboName').focus();
+    }
+    function closeAboModal() {
+      document.getElementById('finAboBackdrop').classList.remove('open');
+      document.getElementById('finAboModal').classList.remove('open');
+    }
+    function submitAboModal() {
+      const name    = document.getElementById('finAboName').value.trim();
+      const cat     = document.getElementById('finAboCat').value;
+      const montant = parseFloat(document.getElementById('finAboMontant').value);
+      const jour    = parseInt(document.getElementById('finAboJour').value) || null;
+      if (!name || isNaN(montant) || montant <= 0) return;
+      if (_editAboId) {
+        const abo = abonnements.find(a => a.id === _editAboId);
+        if (abo) { abo.name = name; abo.cat = cat; abo.montant = montant; abo.jour = jour; }
+      } else {
+        abonnements.push({ id: Date.now(), name, cat, montant, jour, actif: true });
+      }
+      saveAbonnements(); closeAboModal(); renderAboList(); renderFinances();
+    }
+    function toggleAbo(id) {
+      const abo = abonnements.find(a => a.id === id);
+      if (abo) { abo.actif = !abo.actif; saveAbonnements(); renderAboList(); renderFinances(); }
+    }
+    function deleteAbo(id) {
+      abonnements = abonnements.filter(a => a.id !== id);
+      saveAbonnements(); renderAboList(); renderFinances();
+    }
+    function renderAboList() {
+      const active = abonnements.filter(a => a.actif);
+      const total  = active.reduce((s, a) => s + a.montant, 0);
+      const te = document.getElementById('finAboTotalFull');
+      if (te) { te.textContent = '-' + total.toFixed(2) + ' €'; }
+      const el = document.getElementById('finAboList');
+      if (!el) return;
+      if (!abonnements.length) {
+        el.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:28px 0;font-size:14px">Aucun abonnement — ajoutez-en un ci-dessous.</div>';
+        return;
+      }
+      el.innerHTML = abonnements.map(abo => {
+        const cat = ABO_CATS[abo.cat] || ABO_CATS.autre;
+        return `<div class="fin-abo-item" style="opacity:${abo.actif ? 1 : .45}">
+          <div class="fin-abo-icon">${cat.emoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600">${abo.name}</div>
+            <div style="font-size:11px;color:var(--text-secondary)">${cat.label}${abo.jour ? ' · Le ' + abo.jour + ' du mois' : ''}</div>
+          </div>
+          <span style="font-size:14px;font-weight:700;color:#ff6b6b;margin-right:8px">-${abo.montant.toFixed(2)} €</span>
+          <button onclick="toggleAbo(${abo.id})" class="fin-abo-toggle ${abo.actif ? 'on' : 'off'}" title="${abo.actif ? 'Désactiver' : 'Activer'}"></button>
+          <button onclick="openAboModal(${abo.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:15px;padding:0 4px;margin-left:2px">✎</button>
+          <button onclick="deleteAbo(${abo.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:19px;padding:0 2px">×</button>
+        </div>`;
+      }).join('');
     }
 
     // ---- COMPTES BANCAIRES ----
@@ -3876,6 +4052,26 @@
       document.getElementById('finTxMonthBadge').textContent = FIN_MONTHS[finViewMonth];
       document.getElementById('finEntrees').textContent = '+' + revenus.toFixed(2) + ' €';
       document.getElementById('finSorties').textContent = '-' + depenses.toFixed(2) + ' €';
+
+      // Aperçu abonnements
+      const aboActive = abonnements.filter(a => a.actif);
+      const aboTotal  = aboActive.reduce((s, a) => s + a.montant, 0);
+      document.getElementById('finAboTotal').textContent = '-' + aboTotal.toFixed(2) + ' €/mois';
+      const prev = document.getElementById('finAboPreview');
+      if (!aboActive.length) {
+        prev.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);padding:6px 0 2px">Aucun abonnement actif.</div>';
+      } else {
+        prev.innerHTML = aboActive.slice(0, 4).map(abo => {
+          const cat = ABO_CATS[abo.cat] || ABO_CATS.autre;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:18px">${cat.emoji}</span>
+            <span style="flex:1;font-size:14px;font-weight:500">${abo.name}</span>
+            <span style="font-size:14px;font-weight:700;color:#ff6b6b">-${abo.montant.toFixed(2)} €</span>
+          </div>`;
+        }).join('') + (aboActive.length > 4
+          ? `<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:8px 0">+${aboActive.length - 4} autres</div>`
+          : '');
+      }
     }
 
     // ---- THEME ----
