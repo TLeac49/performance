@@ -1466,6 +1466,33 @@
     }
     .fin-abo-toggle.on::after  { left: 19px; }
     .fin-abo-toggle.off::after { left: 3px; }
+    /* ── Modale transaction redesignée ──────────────────────────── */
+    .fin-type-btn {
+      flex: 1; padding: 13px 10px; border-radius: 13px; border: 2px solid transparent;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+      background: var(--surface-hover); color: var(--text-secondary); font-family: inherit;
+    }
+    .fin-type-btn.active.fin-type-dep { background: rgba(255,107,107,.13); color: #ff6b6b; border-color: #ff6b6b; }
+    .fin-type-btn.active.fin-type-rev { background: rgba(26,107,71,.1); color: var(--fin-green); border-color: var(--fin-green); }
+    .fin-amount-block {
+      background: var(--surface-hover); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px 18px;
+      display: flex; align-items: center; gap: 6px; margin-bottom: 14px;
+    }
+    .fin-amount-block input {
+      flex: 1; min-width: 0; background: none; border: none; outline: none;
+      font-size: 2rem; font-weight: 800; color: var(--text-primary);
+      font-family: inherit; letter-spacing: -.02em;
+    }
+    .fin-amount-block input::placeholder { color: var(--text-secondary); font-weight: 400; }
+    .fin-currency { font-size: 1.4rem; font-weight: 700; color: var(--text-secondary); }
+    .fin-modal-section {
+      font-size: 11px; font-weight: 700; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: .07em; margin: 14px 0 8px; padding: 0 2px;
+    }
+    .fin-acc-required { border-color: #ff6b6b !important; }
+    .fin-acc-err { font-size: 12px; color: #ff6b6b; margin: -8px 0 10px 2px; display: none; }
+    .fin-acc-err.show { display: block; }
     /* ── Objectifs / Catégories ──────────────────────────────────── */
     .fin-goal-item {
       margin-bottom: 16px;
@@ -2573,37 +2600,53 @@
 
   <!-- Modale nouvelle transaction -->
   <div class="sheet-backdrop" id="finTxBackdrop" onclick="closeTransactionModal()"></div>
-  <div class="bottom-sheet" id="finTxModal" style="max-width:460px">
+  <div class="bottom-sheet" id="finTxModal" style="max-width:500px">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Nouvelle transaction</div>
+    <div class="sheet-title" id="finTxModalTitle">Nouvelle transaction</div>
+
+    <!-- Type : pill buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="finTypeDep" class="fin-type-btn fin-type-dep active" onclick="setTxType('depense')">💸 Dépense</button>
+      <button id="finTypeRev" class="fin-type-btn fin-type-rev"        onclick="setTxType('revenu')">＋ Revenu</button>
+    </div>
+    <input type="hidden" id="finType" value="depense" />
+
+    <!-- Montant -->
+    <div class="fin-amount-block">
+      <span class="fin-currency">€</span>
+      <input type="number" id="finMontant" placeholder="0,00" step="0.01" min="0" />
+    </div>
+
+    <!-- Description -->
     <div class="sheet-input-block">
       <input type="text" id="finDesc" placeholder="Description…" />
     </div>
-    <div class="sheet-input-block">
-      <input type="number" id="finMontant" placeholder="Montant (€)" step="0.01" min="0" />
-    </div>
-    <div class="sheet-input-block">
-      <select id="finType" onchange="updateTxCatSelect()">
-        <option value="depense">Dépense</option>
-        <option value="revenu">Revenu</option>
-      </select>
-    </div>
+
+    <p class="fin-modal-section">Détails</p>
+
+    <!-- Catégorie -->
     <div class="sheet-input-block">
       <select id="finTxCat">
         <option value="">— Catégorie (optionnel) —</option>
       </select>
     </div>
-    <div class="sheet-input-block">
+
+    <!-- Compte (obligatoire) -->
+    <div class="sheet-input-block" id="finAccSelectBlock">
       <select id="finAccSelect">
-        <option value="">— Compte (optionnel) —</option>
+        <option value="">— Sélectionner un compte * —</option>
       </select>
     </div>
+    <p class="fin-acc-err" id="finAccErr">Veuillez sélectionner un compte bancaire.</p>
+
+    <!-- Date -->
     <div class="sheet-input-block">
       <input type="date" id="finDate" />
     </div>
+
     <div class="sheet-actions">
       <button class="sheet-btn sheet-btn-cancel" onclick="closeTransactionModal()">Annuler</button>
-      <button class="sheet-btn sheet-btn-add" onclick="addTransaction()">Ajouter</button>
+      <button class="sheet-btn sheet-btn-add" id="finTxSubmitBtn" onclick="addTransaction()">Ajouter</button>
     </div>
   </div>
 
@@ -4147,16 +4190,22 @@
         el.innerHTML = '<li style="color:var(--text-secondary);text-align:center;padding:28px">Aucune transaction ce mois</li>';
         return;
       }
-      el.innerHTML = monthTx.map(t => `
-        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+      const allCats = [...finCats.revenus, ...finCats.depenses];
+      el.innerHTML = monthTx.map(t => {
+        const cat = allCats.find(c => c.id === t.catId);
+        const acc = bankAccounts.find(a => a.id === t.accountId);
+        return `
+        <li style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer"
+            onclick="openTransactionModal(${t.id})">
           <span class="fin-tx-icon ${t.type === 'revenu' ? 'fin-tx-in' : 'fin-tx-out'}" style="font-size:14px">${t.type === 'revenu' ? '+' : '−'}</span>
           <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:500">${t.desc}</div>
-            <div style="font-size:11px;color:var(--text-secondary)">${t.date}</div>
+            <div style="font-size:11px;color:var(--text-secondary)">${cat ? cat.emoji + ' ' + cat.name : ''}${cat && acc ? ' · ' : ''}${acc ? acc.name : ''}${!cat && !acc ? t.date : ' · ' + t.date}</div>
           </div>
           <span style="font-weight:600;color:${t.type === 'revenu' ? 'var(--fin-green)' : '#ff6b6b'};white-space:nowrap">${t.type === 'revenu' ? '+' : '-'}${t.montant.toFixed(2)} €</span>
-          <button onclick="deleteTx(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:19px;padding:0 4px">×</button>
-        </li>`).join('');
+          <button onclick="event.stopPropagation();deleteTx(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:19px;padding:0 4px">×</button>
+        </li>`;
+      }).join('');
     }
     function deleteTx(id) {
       const tx = transactions.find(t => t.id === id);
@@ -4170,19 +4219,49 @@
       renderTxList();
     }
 
-    function openTransactionModal() {
-      document.getElementById('finDesc').value    = '';
-      document.getElementById('finMontant').value = '';
-      document.getElementById('finDate').value    = '';
-      // Peupler le sélecteur de catégorie
+    let _editTxId = null;
+
+    function setTxType(type) {
+      document.getElementById('finType').value = type;
+      document.getElementById('finTypeDep').classList.toggle('active', type === 'depense');
+      document.getElementById('finTypeRev').classList.toggle('active', type === 'revenu');
       updateTxCatSelect();
-      // Peupler le sélecteur de compte
+    }
+
+    function _populateTxModal() {
+      updateTxCatSelect();
       const sel = document.getElementById('finAccSelect');
-      sel.innerHTML = '<option value="">— Compte (optionnel) —</option>' +
+      sel.innerHTML = '<option value="">— Sélectionner un compte * —</option>' +
         bankAccounts.map(a => `<option value="${a.id}">${a.name} (${a.type === 'epargne' ? 'Épargne' : 'Courant'}) — ${a.solde.toFixed(2)} €</option>`).join('');
+      document.getElementById('finAccSelectBlock').classList.remove('fin-acc-required');
+      document.getElementById('finAccErr').classList.remove('show');
+    }
+
+    function openTransactionModal(id = null) {
+      _editTxId = id;
+      if (id) {
+        const tx = transactions.find(t => t.id === id);
+        setTxType(tx.type);
+        document.getElementById('finMontant').value = tx.montant;
+        document.getElementById('finDesc').value    = tx.desc;
+        document.getElementById('finDate').value    = tx.date;
+        _populateTxModal();
+        document.getElementById('finTxCat').value     = tx.catId    || '';
+        document.getElementById('finAccSelect').value = tx.accountId || '';
+        document.getElementById('finTxModalTitle').textContent = 'Modifier la transaction';
+        document.getElementById('finTxSubmitBtn').textContent  = 'Enregistrer';
+      } else {
+        setTxType('depense');
+        document.getElementById('finMontant').value = '';
+        document.getElementById('finDesc').value    = '';
+        document.getElementById('finDate').value    = '';
+        _populateTxModal();
+        document.getElementById('finTxModalTitle').textContent = 'Nouvelle transaction';
+        document.getElementById('finTxSubmitBtn').textContent  = 'Ajouter';
+      }
       document.getElementById('finTxBackdrop').classList.add('open');
       document.getElementById('finTxModal').classList.add('open');
-      document.getElementById('finDesc').focus();
+      document.getElementById('finMontant').focus();
     }
     function closeTransactionModal() {
       document.getElementById('finTxBackdrop').classList.remove('open');
@@ -4194,20 +4273,40 @@
       const montant   = parseFloat(document.getElementById('finMontant').value);
       const type      = document.getElementById('finType').value;
       const date      = document.getElementById('finDate').value || new Date().toISOString().slice(0, 10);
-      const catIdRaw  = document.getElementById('finTxCat').value;
-      const catId     = catIdRaw ? parseInt(catIdRaw) : null;
-      const accIdRaw  = document.getElementById('finAccSelect').value;
-      const accountId = accIdRaw ? parseInt(accIdRaw) : null;
+      const catId     = parseInt(document.getElementById('finTxCat').value)     || null;
+      const accountId = parseInt(document.getElementById('finAccSelect').value) || null;
       if (!desc || isNaN(montant) || montant <= 0) return;
-      // Mettre à jour le solde du compte lié
-      if (accountId) {
+      // Compte obligatoire
+      if (!accountId) {
+        document.getElementById('finAccSelectBlock').classList.add('fin-acc-required');
+        document.getElementById('finAccErr').classList.add('show');
+        return;
+      }
+      document.getElementById('finAccSelectBlock').classList.remove('fin-acc-required');
+      document.getElementById('finAccErr').classList.remove('show');
+
+      if (_editTxId) {
+        // Annuler l'effet de l'ancienne transaction sur le compte
+        const old = transactions.find(t => t.id === _editTxId);
+        if (old && old.accountId) {
+          const acc = bankAccounts.find(a => a.id === old.accountId);
+          if (acc) acc.solde += old.type === 'revenu' ? -old.montant : old.montant;
+        }
+        // Appliquer la nouvelle
+        const acc = bankAccounts.find(a => a.id === accountId);
+        if (acc) acc.solde += type === 'revenu' ? montant : -montant;
+        saveBankAccounts();
+        const idx = transactions.findIndex(t => t.id === _editTxId);
+        transactions[idx] = { ...transactions[idx], desc, montant, type, date, catId, accountId };
+      } else {
         const acc = bankAccounts.find(a => a.id === accountId);
         if (acc) { acc.solde += type === 'revenu' ? montant : -montant; saveBankAccounts(); }
+        transactions.unshift({ id: Date.now(), desc, montant, type, date, catId, accountId });
       }
-      transactions.unshift({ id: Date.now(), desc, montant, type, date, catId, accountId });
       saveTransactions();
       closeTransactionModal();
       renderFinances();
+      if (document.getElementById('fin-transactions').style.display !== 'none') renderTxList();
     }
 
     function deleteTransaction(id) {
@@ -4255,7 +4354,7 @@
       if (!allCatsWithGoal.length) {
         gp.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);padding:6px 0 2px">Aucun objectif fixé — créez des catégories.</div>';
       } else {
-        gp.innerHTML = allCatsWithGoal.slice(0, 4).map(cat => {
+        gp.innerHTML = allCatsWithGoal.map(cat => {
           const actual = monthTx.filter(t => t.type === cat.txType && t.catId === cat.id).reduce((s, t) => s + t.montant, 0);
           const pct    = Math.min(100, (actual / cat.goal) * 100);
           const isRev  = cat.txType === 'revenu';
@@ -4270,7 +4369,7 @@
             </div>
             <div class="fin-goal-bar"><div class="fin-goal-fill" style="width:${pct}%;background:${color}"></div></div>
           </div>`;
-        }).join('') + (allCatsWithGoal.length > 4 ? `<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:4px 0">+${allCatsWithGoal.length-4} autres</div>` : '');
+        }).join('');
       }
 
       // Aperçu abonnements
