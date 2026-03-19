@@ -2807,17 +2807,21 @@
       return CAT_COLORS[Math.abs(hash) % CAT_COLORS.length];
     }
 
+    function syncToFirestore() {
+      if (!currentUser) return;
+      db.collection('users').doc(currentUser.uid)
+        .set({ tasks, reminders, categories, projects, domains,
+               transactions, finCategories, bankAccounts, abonnements, finCats })
+        .catch(e => console.error('Firestore save:', e));
+    }
+
     function saveAll() {
       localStorage.setItem('tasks',      JSON.stringify(tasks));
       localStorage.setItem('reminders',  JSON.stringify(reminders));
       localStorage.setItem('categories', JSON.stringify(categories));
       localStorage.setItem('projects',   JSON.stringify(projects));
       localStorage.setItem('domains',    JSON.stringify(domains));
-      if (currentUser) {
-        db.collection('users').doc(currentUser.uid)
-          .set({ tasks, reminders, categories, projects, domains })
-          .catch(e => console.error('Firestore save:', e));
-      }
+      syncToFirestore();
     }
 
     // ---- TÂCHES ----
@@ -3839,9 +3843,9 @@
     let bankAccounts  = JSON.parse(localStorage.getItem('fin_accounts')     || '[]');
     let abonnements   = JSON.parse(localStorage.getItem('fin_abonnements')  || '[]');
     let finCats       = JSON.parse(localStorage.getItem('fin_cats2')        || '{"revenus":[],"depenses":[]}');
-    function saveBankAccounts() { localStorage.setItem('fin_accounts',     JSON.stringify(bankAccounts)); }
-    function saveAbonnements()  { localStorage.setItem('fin_abonnements',  JSON.stringify(abonnements));  }
-    function saveFinCats()      { localStorage.setItem('fin_cats2',        JSON.stringify(finCats));       }
+    function saveBankAccounts() { localStorage.setItem('fin_accounts',     JSON.stringify(bankAccounts)); syncToFirestore(); }
+    function saveAbonnements()  { localStorage.setItem('fin_abonnements',  JSON.stringify(abonnements));  syncToFirestore(); }
+    function saveFinCats()      { localStorage.setItem('fin_cats2',        JSON.stringify(finCats));      syncToFirestore(); }
 
     const ABO_CATS = {
       streaming: { label: 'Streaming',     emoji: '🎬' },
@@ -3859,9 +3863,11 @@
 
     function saveTransactions() {
       localStorage.setItem('fin_transactions', JSON.stringify(transactions));
+      syncToFirestore();
     }
     function saveFinCategories() {
       localStorage.setItem('fin_categories', JSON.stringify(finCategories));
+      syncToFirestore();
     }
 
     function finPrevMonth() {
@@ -4799,11 +4805,16 @@
           const doc = await db.collection('users').doc(user.uid).get();
           if (doc.exists) {
             const d = doc.data();
-            tasks      = d.tasks      || [];
-            reminders  = d.reminders  || [];
-            categories = d.categories || ['Travail','Personnel','Urgent'];
-            projects   = d.projects   || [];
-            domains    = d.domains    || [];
+            tasks         = d.tasks         || [];
+            reminders     = d.reminders     || [];
+            categories    = d.categories    || ['Travail','Personnel','Urgent'];
+            projects      = d.projects      || [];
+            domains       = d.domains       || [];
+            if (d.transactions)  { transactions  = d.transactions;  localStorage.setItem('fin_transactions', JSON.stringify(transactions)); }
+            if (d.finCategories) { finCategories = d.finCategories; localStorage.setItem('fin_categories',   JSON.stringify(finCategories)); }
+            if (d.bankAccounts)  { bankAccounts  = d.bankAccounts;  localStorage.setItem('fin_accounts',     JSON.stringify(bankAccounts)); }
+            if (d.abonnements)   { abonnements   = d.abonnements;   localStorage.setItem('fin_abonnements',  JSON.stringify(abonnements)); }
+            if (d.finCats)       { finCats       = d.finCats;       localStorage.setItem('fin_cats2',        JSON.stringify(finCats)); }
             localStorage.setItem('tasks',      JSON.stringify(tasks));
             localStorage.setItem('reminders',  JSON.stringify(reminders));
             localStorage.setItem('categories', JSON.stringify(categories));
@@ -4821,6 +4832,7 @@
       } else {
         currentUser = null;
         tasks = []; reminders = []; categories = ['Travail','Personnel','Urgent']; projects = []; domains = [];
+        transactions = []; finCategories = {revenus:[], depenses:[]}; bankAccounts = []; abonnements = []; finCats = {revenus:[], depenses:[]};
         document.getElementById('authOverlay').style.display = 'flex';
         document.getElementById('userEmailDisplay').textContent = '';
         document.getElementById('logoutBtn').style.display = 'none';
